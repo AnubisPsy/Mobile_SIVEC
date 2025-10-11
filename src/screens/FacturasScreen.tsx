@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,37 @@ import {
   StyleSheet,
   RefreshControl,
   Alert,
-} from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { useAuth } from "../contexts/AuthContext";
-import { facturasApi } from "../services/api";
-import { FacturaAsignada } from "../types";
+  ActivityIndicator,
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../contexts/AuthContext';
+import { facturasApi } from '../services/api';
+
+interface Guia {
+  guia_id: number;
+  numero_guia: string;
+  numero_factura: string;
+  detalle_producto?: string;
+  direccion?: string;
+  estado_id: number;
+  fecha_emision?: string;
+  fecha_entrega?: string;
+  estados: {
+    codigo: string;
+    nombre: string;
+  };
+}
+
+interface FacturaConGuia {
+  factura_id: number;
+  numero_factura: string;
+  piloto: string;
+  numero_vehiculo: string;
+  fecha_asignacion: string;
+  estado_id: number;
+  notas_jefe?: string;
+  guia?: Guia;
+}
 
 interface Props {
   navigation: any;
@@ -19,23 +45,24 @@ interface Props {
 
 const FacturasScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useAuth();
-  const [facturas, setFacturas] = useState<FacturaAsignada[]>([]);
+  const [facturas, setFacturas] = useState<FacturaConGuia[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [buscandoGuia, setBuscandoGuia] = useState<number | null>(null);
 
   const cargarFacturas = async () => {
     if (!user?.nombre_usuario) return;
 
     try {
-      const response = await facturasApi.obtenerFacturasPiloto(
-        user.nombre_usuario
+      const response = await facturasApi.obtenerFacturasConGuias(
+        user.nombre_usuario,
       );
 
       if (response.data.success) {
         setFacturas(response.data.data);
       }
     } catch (error) {
-      Alert.alert("Error", "No se pudieron cargar las facturas");
+      Alert.alert('Error', 'No se pudieron cargar las facturas');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -45,7 +72,7 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       cargarFacturas();
-    }, [user])
+    }, [user]),
   );
 
   const onRefresh = () => {
@@ -53,105 +80,161 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
     cargarFacturas();
   };
 
-  const navegarAGuias = (factura: FacturaAsignada) => {
-    navigation.navigate("Guias", {
-      factura,
-      onGuiaSeleccionada: (guia: any) => {
-        // Actualizar la factura con la guía seleccionada
-        setFacturas((prev) =>
-          prev.map((f) =>
-            f.factura_id === factura.factura_id
-              ? { ...f, guia_seleccionada: guia }
-              : f
-          )
-        );
-      },
-    });
-  };
+  const buscarGuia = async (factura: FacturaConGuia) => {
+    setBuscandoGuia(factura.factura_id);
 
-  const puedeCrearViaje = () => {
-    return facturas.length > 0 && facturas.every((f) => f.guia_seleccionada);
-  };
-
-  const crearViaje = async () => {
     try {
-      const datosViaje = {
-        facturas: facturas.map((f) => ({
-          numero_factura: f.numero_factura,
-          numero_guia: f.guia_seleccionada?.referencia,
-        })),
-        piloto: user?.nombre_usuario,
-      };
+      const response = await facturasApi.buscarGuiaParaFactura(
+        factura.numero_factura,
+      );
 
-      await facturasApi.crearViaje(datosViaje);
-
-      Alert.alert("Éxito", "Viaje creado exitosamente", [
-        { text: "OK", onPress: () => cargarFacturas() },
-      ]);
-    } catch (error) {
-      Alert.alert("Error", "No se pudo crear el viaje");
+      if (response.data.success) {
+        Alert.alert(
+          'Guía Encontrada',
+          `Se encontró la guía ${response.data.data.numero_guia}`,
+          [{ text: 'OK', onPress: () => cargarFacturas() }],
+        );
+      } else {
+        Alert.alert(
+          'No Encontrada',
+          'No se encontró una guía para esta factura. Intenta más tarde o contacta al controlador.',
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'No se pudo buscar la guía',
+      );
+    } finally {
+      setBuscandoGuia(null);
     }
   };
 
-  const renderFactura = ({ item }: { item: FacturaAsignada }) => (
-    <View style={styles.facturaCard}>
-      <View style={styles.facturaHeader}>
-        <Text style={styles.facturaNumero}>{item.numero_factura}</Text>
-        <View
-          style={[
-            styles.estadoBadge,
-            item.guia_seleccionada
-              ? styles.estadoCompleto
-              : styles.estadoPendiente,
-          ]}
-        >
-          <Text style={styles.estadoTexto}>
-            {item.guia_seleccionada ? "Guía Asignada" : "Sin Guía"}
-          </Text>
+  const verDetalleGuia = (factura: FacturaConGuia) => {
+    if (!factura.guia) return;
+
+    navigation.navigate('DetalleGuia', {
+      guia: factura.guia,
+      onActualizar: cargarFacturas,
+    });
+  };
+
+  const getEstadoColor = (estadoCodigo: string) => {
+    switch (estadoCodigo) {
+      case 'guia_asignada':
+        return { bg: '#dbeafe', text: '#1e40af' };
+      case 'guia_entregada':
+        return { bg: '#dcfce7', text: '#166534' };
+      case 'guia_no_entregada':
+        return { bg: '#fee2e2', text: '#991b1b' };
+      default:
+        return { bg: '#f1f5f9', text: '#475569' };
+    }
+  };
+
+  const renderFactura = ({ item }: { item: FacturaConGuia }) => {
+    const tieneGuia = !!item.guia;
+    const estaBuscando = buscandoGuia === item.factura_id;
+    const estadoColor = tieneGuia
+      ? getEstadoColor(item.guia!.estados.codigo)
+      : { bg: '#fef3c7', text: '#92400e' };
+
+    return (
+      <TouchableOpacity
+        style={styles.facturaCard}
+        onPress={() => tieneGuia && verDetalleGuia(item)}
+        disabled={!tieneGuia}
+        activeOpacity={tieneGuia ? 0.7 : 1}
+      >
+        {/* Header */}
+        <View style={styles.facturaHeader}>
+          <View>
+            <Text style={styles.facturaNumero}>{item.numero_factura}</Text>
+            <Text style={styles.vehiculo}>
+              Vehículo: {item.numero_vehiculo}
+            </Text>
+          </View>
+          <View
+            style={[styles.estadoBadge, { backgroundColor: estadoColor.bg }]}
+          >
+            <Text style={[styles.estadoTexto, { color: estadoColor.text }]}>
+              {tieneGuia ? item.guia!.estados.nombre : 'Sin Guía'}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.facturaDetalle}>
-        <Text style={styles.detalleLabel}>Vehículo:</Text>
-        <Text style={styles.detalleValor}>{item.numero_vehiculo}</Text>
-      </View>
+        {/* Notas del jefe */}
+        {item.notas_jefe && (
+          <View style={styles.notasContainer}>
+            <Text style={styles.notasLabel}>📝 Nota del jefe:</Text>
+            <Text style={styles.notasTexto}>{item.notas_jefe}</Text>
+          </View>
+        )}
 
-      <View style={styles.facturaDetalle}>
-        <Text style={styles.detalleLabel}>Fecha Asignación:</Text>
-        <Text style={styles.detalleValor}>
-          {new Date(item.fecha_asignacion).toLocaleDateString()}
-        </Text>
-      </View>
+        {/* Si tiene guía, mostrar info */}
+        {tieneGuia ? (
+          <View style={styles.guiaInfo}>
+            <View style={styles.guiaRow}>
+              <Text style={styles.guiaLabel}>Guía:</Text>
+              <Text style={styles.guiaValor}>{item.guia!.numero_guia}</Text>
+            </View>
 
-      {item.guia_seleccionada ? (
-        <View style={styles.guiaInfo}>
-          <Text style={styles.guiaLabel}>Guía Seleccionada:</Text>
-          <Text style={styles.guiaNumero}>
-            {item.guia_seleccionada.referencia}
-          </Text>
-        </View>
-      ) : (
-        <TouchableOpacity
-          style={styles.seleccionarButton}
-          onPress={() => navegarAGuias(item)}
-        >
-          <Text style={styles.seleccionarText}>Seleccionar Guía</Text>
-        </TouchableOpacity>
-      )}
+            {item.guia!.direccion && (
+              <View style={styles.guiaRow}>
+                <Text style={styles.guiaLabel}>📍 Dirección:</Text>
+                <Text style={styles.guiaValor} numberOfLines={2}>
+                  {item.guia!.direccion}
+                </Text>
+              </View>
+            )}
 
-      {item.notas_jefe && (
-        <View style={styles.notasContainer}>
-          <Text style={styles.notasLabel}>Notas del Jefe:</Text>
-          <Text style={styles.notasTexto}>{item.notas_jefe}</Text>
-        </View>
-      )}
-    </View>
-  );
+            {item.guia!.detalle_producto && (
+              <View style={styles.guiaRow}>
+                <Text style={styles.guiaLabel}>📦 Producto:</Text>
+                <Text style={styles.guiaValor} numberOfLines={2}>
+                  {item.guia!.detalle_producto}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.verDetalleContainer}>
+              <Text style={styles.verDetalleTexto}>
+                Toca para ver detalle completo →
+              </Text>
+            </View>
+          </View>
+        ) : (
+          // Si NO tiene guía, mostrar botón buscar
+          <TouchableOpacity
+            style={[
+              styles.buscarButton,
+              estaBuscando && styles.buscarButtonDisabled,
+            ]}
+            onPress={() => buscarGuia(item)}
+            disabled={estaBuscando}
+          >
+            {estaBuscando ? (
+              <>
+                <ActivityIndicator size="small" color="#fff" />
+                <Text style={styles.buscarButtonText}>Buscando...</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.buscarButtonIcon}>🔍</Text>
+                <Text style={styles.buscarButtonText}>Buscar Guía</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <Text>Cargando facturas...</Text>
+        <ActivityIndicator size="large" color="#2563eb" />
+        <Text style={styles.loadingText}>Cargando facturas...</Text>
       </View>
     );
   }
@@ -159,37 +242,28 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.titulo}>Mis Facturas Asignadas</Text>
+        <Text style={styles.titulo}>Mis Facturas</Text>
         <Text style={styles.subtitulo}>Piloto: {user?.nombre_usuario}</Text>
       </View>
 
       {facturas.length === 0 ? (
         <View style={styles.centerContainer}>
+          <Text style={styles.emptyIcon}>📋</Text>
           <Text style={styles.emptyText}>No tienes facturas asignadas</Text>
+          <Text style={styles.emptySubtext}>
+            Cuando te asignen facturas, aparecerán aquí
+          </Text>
         </View>
       ) : (
-        <>
-          <FlatList
-            data={facturas}
-            renderItem={renderFactura}
-            keyExtractor={(item) => item.factura_id.toString()}
-            contentContainerStyle={styles.lista}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          />
-
-          {puedeCrearViaje() && (
-            <View style={styles.footerButton}>
-              <TouchableOpacity
-                style={styles.crearViajeButton}
-                onPress={crearViaje}
-              >
-                <Text style={styles.crearViajeText}>Crear Viaje</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </>
+        <FlatList
+          data={facturas}
+          renderItem={renderFactura}
+          keyExtractor={item => item.factura_id.toString()}
+          contentContainerStyle={styles.lista}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        />
       )}
     </View>
   );
@@ -198,147 +272,159 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: '#f8fafc',
   },
   centerContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
   },
   header: {
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: '#e2e8f0',
   },
   titulo: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1e293b",
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1e293b',
   },
   subtitulo: {
     fontSize: 14,
-    color: "#64748b",
+    color: '#64748b',
     marginTop: 4,
   },
   lista: {
     padding: 16,
   },
   facturaCard: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   facturaHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
   facturaNumero: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#1e293b",
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  vehiculo: {
+    fontSize: 14,
+    color: '#64748b',
   },
   estadoBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  estadoCompleto: {
-    backgroundColor: "#dcfce7",
-  },
-  estadoPendiente: {
-    backgroundColor: "#fef3c7",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   estadoTexto: {
     fontSize: 12,
-    fontWeight: "500",
-    color: "#1e293b",
-  },
-  facturaDetalle: {
-    flexDirection: "row",
-    marginBottom: 8,
-  },
-  detalleLabel: {
-    fontSize: 14,
-    color: "#64748b",
-    width: 120,
-  },
-  detalleValor: {
-    fontSize: 14,
-    color: "#1e293b",
-    fontWeight: "500",
-    flex: 1,
-  },
-  guiaInfo: {
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: "#f1f5f9",
-    borderRadius: 6,
-  },
-  guiaLabel: {
-    fontSize: 12,
-    color: "#64748b",
-    marginBottom: 4,
-  },
-  guiaNumero: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2563eb",
-  },
-  seleccionarButton: {
-    marginTop: 12,
-    backgroundColor: "#2563eb",
-    borderRadius: 6,
-    padding: 12,
-    alignItems: "center",
-  },
-  seleccionarText: {
-    color: "#fff",
-    fontWeight: "600",
+    fontWeight: '600',
   },
   notasContainer: {
-    marginTop: 12,
+    backgroundColor: '#fef3c7',
     padding: 12,
-    backgroundColor: "#fef3c7",
-    borderRadius: 6,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
   },
   notasLabel: {
     fontSize: 12,
-    color: "#92400e",
+    fontWeight: '600',
+    color: '#92400e',
     marginBottom: 4,
   },
   notasTexto: {
     fontSize: 14,
-    color: "#1e293b",
+    color: '#78350f',
+  },
+  guiaInfo: {
+    backgroundColor: '#f8fafc',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  guiaRow: {
+    marginBottom: 8,
+  },
+  guiaLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 2,
+  },
+  guiaValor: {
+    fontSize: 14,
+    color: '#1e293b',
+    fontWeight: '500',
+  },
+  verDetalleContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    alignItems: 'center',
+  },
+  verDetalleTexto: {
+    fontSize: 14,
+    color: '#2563eb',
+    fontWeight: '600',
+  },
+  buscarButton: {
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  buscarButtonDisabled: {
+    opacity: 0.6,
+  },
+  buscarButtonIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  buscarButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#64748b',
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: "#64748b",
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 8,
   },
-  footerButton: {
-    padding: 16,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-  },
-  crearViajeButton: {
-    backgroundColor: "#059669",
-    borderRadius: 8,
-    padding: 16,
-    alignItems: "center",
-  },
-  crearViajeText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+  emptySubtext: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
   },
 });
 

@@ -6,16 +6,16 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../contexts/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import FacturasScreen from '../screens/FacturasScreen';
-import GuiasScreen from '../screens/GuiasScreen';
+import DetalleGuiaScreen from '../screens/DetalleGuiaScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import LoadingScreen from '../screens/LoadingScreen';
 
 // Definir tipos de navegación
 type RootStackParamList = {
   MainTabs: undefined;
-  Guias: {
-    factura: any;
-    onGuiaSeleccionada?: (guia: any) => void;
+  DetalleGuia: {
+    guia: any;
+    onActualizar: () => void;
   };
   Login: undefined;
 };
@@ -67,11 +67,11 @@ export default function AppNavigator() {
           <>
             <Stack.Screen name="MainTabs" component={AuthenticatedTabs} />
             <Stack.Screen
-              name="Guias"
-              component={GuiasScreen}
+              name="DetalleGuia"
+              component={DetalleGuiaScreen}
               options={{
                 headerShown: true,
-                title: 'Seleccionar Guía',
+                title: 'Detalle de Guía',
                 headerStyle: { backgroundColor: '#2563eb' },
                 headerTintColor: '#fff',
               }}
