@@ -67,60 +67,6 @@ export const authApi = {
 };
 
 // ==========================================
-// SERVICIOS DE FACTURAS
-// ==========================================
-
-export const facturasApi = {
-  // Obtener facturas asignadas a un piloto específico
-  obtenerFacturasPiloto: (piloto: string) =>
-    api.get<ApiResponse<FacturaAsignada[]>>(
-      `/api/facturas?piloto=${piloto}&estado_id=1`,
-    ),
-
-  // Obtener guías disponibles para una factura específica
-  obtenerGuiasDisponibles: (numero_factura: string, piloto: string) =>
-    api.get<ApiResponse<GuiaDisponible[]>>(
-      `/api/facturas/${numero_factura}/guias-disponibles?piloto=${piloto}`,
-    ),
-
-  // Crear viaje con las facturas seleccionadas
-  crearViaje: (datos: {
-    facturas: Array<{
-      numero_factura: string;
-      numero_guia: string;
-    }>;
-    piloto: string;
-  }) => api.post<ApiResponse<any>>('/api/viajes', datos),
-
-  // Obtener datos para formularios (pilotos y vehículos)
-  obtenerDatosFormulario: () =>
-    api.get<ApiResponse<FormDataResponse>>('/api/facturas/form-data'),
-
-  // Asignar factura (para jefes)
-  asignarFactura: (data: {
-    numero_factura: string;
-    piloto: string;
-    numero_vehiculo: string;
-    fecha_asignacion?: string;
-    notas_jefe?: string;
-  }) => api.post<ApiResponse<FacturaAsignada>>('/api/facturas', data),
-
-  // Obtener estadísticas
-  obtenerEstadisticas: (filtros?: {
-    fecha_desde?: string;
-    fecha_hasta?: string;
-  }) => {
-    const params = new URLSearchParams();
-    if (filtros?.fecha_desde) params.append('fecha_desde', filtros.fecha_desde);
-    if (filtros?.fecha_hasta) params.append('fecha_hasta', filtros.fecha_hasta);
-
-    return api.get<ApiResponse<any>>(
-      `/api/facturas/reportes/estadisticas?${params.toString()}`,
-    );
-  },
-};
-
-// ==========================================
 // SERVICIOS DE PILOTOS
 // ==========================================
 
@@ -172,6 +118,78 @@ export const usuariosApi = {
 
   obtenerJefes: () =>
     api.get<ApiResponse<any[]>>('/api/usuarios/roles/jefes-yarda'),
+};
+
+// ==========================================
+// SERVICIOS DE FACTURAS
+// ==========================================
+
+export const facturasApi = {
+  // Obtener facturas asignadas a un piloto específico
+  obtenerFacturasPiloto: (piloto: string) =>
+    api.get<ApiResponse<FacturaAsignada[]>>(
+      `/api/facturas?piloto=${piloto}&estado_id=1`,
+    ),
+
+  // Obtener guías disponibles para una factura específica
+  obtenerGuiasDisponibles: (numero_factura: string, piloto: string) =>
+    api.get<ApiResponse<GuiaDisponible[]>>(
+      `/api/facturas/${numero_factura}/guias-disponibles?piloto=${piloto}`,
+    ),
+
+  // ✨ NUEVO: Obtener facturas con sus guías
+  obtenerFacturasConGuias: (piloto: string) =>
+    api.get<ApiResponse<any[]>>(`/api/facturas/piloto/${piloto}/con-guias`),
+
+  // ✨ NUEVO: Buscar guía para una factura
+  buscarGuiaParaFactura: (numero_factura: string) =>
+    api.post<ApiResponse<any>>(`/api/facturas/${numero_factura}/buscar-guia`),
+
+  // Crear viaje con las facturas seleccionadas
+  crearViaje: (datos: {
+    facturas: Array<{
+      numero_factura: string;
+      numero_guia: string;
+    }>;
+    piloto: string;
+  }) => api.post<ApiResponse<any>>('/api/viajes', datos),
+
+  // Obtener datos para formularios (pilotos y vehículos)
+  obtenerDatosFormulario: () =>
+    api.get<ApiResponse<FormDataResponse>>('/api/facturas/form-data'),
+
+  // Asignar factura (para jefes)
+  asignarFactura: (data: {
+    numero_factura: string;
+    piloto: string;
+    numero_vehiculo: string;
+    fecha_asignacion?: string;
+    notas_jefe?: string;
+  }) => api.post<ApiResponse<FacturaAsignada>>('/api/facturas', data),
+
+  // Obtener estadísticas
+  obtenerEstadisticas: (filtros?: {
+    fecha_desde?: string;
+    fecha_hasta?: string;
+  }) => {
+    const params = new URLSearchParams();
+    if (filtros?.fecha_desde) params.append('fecha_desde', filtros.fecha_desde);
+    if (filtros?.fecha_hasta) params.append('fecha_hasta', filtros.fecha_hasta);
+
+    return api.get<ApiResponse<any>>(
+      `/api/facturas/reportes/estadisticas?${params.toString()}`,
+    );
+  },
+};
+
+// ==========================================
+// ✨ NUEVO: SERVICIOS DE GUÍAS
+// ==========================================
+
+export const guiasApi = {
+  // Actualizar estado de guía
+  actualizarEstadoGuia: (guia_id: number, estado_id: number) =>
+    api.patch<ApiResponse<any>>(`/api/guias/${guia_id}/estado`, { estado_id }),
 };
 
 // ==========================================
