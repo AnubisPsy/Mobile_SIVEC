@@ -138,8 +138,8 @@ export const facturasApi = {
     ),
 
   // ✨ NUEVO: Obtener facturas con sus guías
-  obtenerFacturasConGuias: (piloto: string) =>
-    api.get<ApiResponse<any[]>>(`/api/facturas/piloto/${piloto}/con-guias`),
+  obtenerFacturasConGuias: (piloto_id: number) =>
+    api.get<ApiResponse<any[]>>(`/api/facturas/piloto/${piloto_id}/con-guias`),
 
   // ✨ NUEVO: Buscar guía para una factura
   buscarGuiaParaFactura: (numero_factura: string) =>

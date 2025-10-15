@@ -51,11 +51,11 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
   const [buscandoGuia, setBuscandoGuia] = useState<number | null>(null);
 
   const cargarFacturas = async () => {
-    if (!user?.nombre_usuario) return;
+    if (!user?.usuario_id) return; // ✨ Cambio aquí
 
     try {
       const response = await facturasApi.obtenerFacturasConGuias(
-        user.nombre_usuario,
+        user.usuario_id, // ✨ Enviar usuario_id en lugar de nombre_usuario
       );
 
       if (response.data.success) {
