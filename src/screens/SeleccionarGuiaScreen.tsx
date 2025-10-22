@@ -19,29 +19,58 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   const [seleccionando, setSeleccionando] = useState(false);
 
   const seleccionarGuia = async (guia: any) => {
-    setSeleccionando(true);
+    Alert.alert(
+      'Confirmar selección',
+      `¿Vincular la guía ${guia.numero_guia} a esta factura?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Confirmar',
+          onPress: async () => {
+            setSeleccionando(true);
+            try {
+              // Importar guiasApi
+              const { guiasApi } = require('../services/api');
 
-    // Aquí irá la lógica para vincular la guía con la factura en Supabase
-    // Por ahora, navegamos al detalle
+              // Crear la guía en Supabase (vincularla)
+              const response = await guiasApi.crearGuia({
+                numero_guia: guia.numero_guia,
+                numero_factura: factura.numero_factura,
+                detalle_producto: guia.detalle_producto || 'Sin descripción',
+                direccion: guia.direccion_entrega || 'Sin dirección',
+                cliente: 'Cliente',
+                fecha_emision: guia.fecha_emision || new Date().toISOString(),
+              });
 
-    setTimeout(() => {
-      navigation.navigate('DetalleGuia', {
-        guia: {
-          guia_id: Date.now(), // Temporal
-          numero_guia: guia.numero_guia,
-          numero_factura: guia.numero_factura,
-          detalle_producto: guia.descripcion,
-          direccion: guia.direccion_entrega,
-          estado_id: 3,
-          estados: {
-            codigo: 'guia_asignada',
-            nombre: 'Asignada',
+              if (response.data.success) {
+                Alert.alert('✅ Éxito', 'Guía vinculada correctamente', [
+                  {
+                    text: 'Ver detalle',
+                    onPress: () => {
+                      navigation.navigate('DetalleGuia', {
+                        guia: response.data.data,
+                        onActualizar: () => {
+                          // Recargar la lista cuando vuelva
+                          navigation.goBack();
+                        },
+                      });
+                    },
+                  },
+                ]);
+              }
+            } catch (error: any) {
+              console.error('Error vinculando guía:', error);
+              Alert.alert(
+                'Error',
+                error.response?.data?.error || 'No se pudo vincular la guía',
+              );
+            } finally {
+              setSeleccionando(false);
+            }
           },
         },
-        onActualizar: () => navigation.goBack(),
-      });
-      setSeleccionando(false);
-    }, 500);
+      ],
+    );
   };
 
   const renderGuia = ({ item }: { item: any }) => (

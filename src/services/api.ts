@@ -193,6 +193,16 @@ export const facturasApi = {
 // ==========================================
 
 export const guiasApi = {
+  // ✨ NUEVO: Crear guía (vincular a factura)
+  crearGuia: (data: {
+    numero_guia: string;
+    numero_factura: string;
+    detalle_producto?: string;
+    direccion?: string;
+    cliente?: string;
+    fecha_emision?: string;
+  }) => api.post<ApiResponse<any>>('/api/guias', data),
+
   // Actualizar estado de guía
   actualizarEstadoGuia: (guia_id: number, estado_id: number) =>
     api.patch<ApiResponse<any>>(`/api/guias/${guia_id}/estado`, { estado_id }),
