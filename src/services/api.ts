@@ -131,6 +131,12 @@ export const facturasApi = {
       `/api/facturas?piloto=${piloto}&estado_id=1`,
     ),
 
+  // ✅ NUEVO: Obtener facturas con guías disponibles
+  obtenerFacturasConGuiasDisponibles: (piloto_id: number) =>
+    api.get<ApiResponse<any[]>>(
+      `/api/facturas/piloto/${piloto_id}/con-guias-disponibles`,
+    ),
+
   // Obtener guías disponibles para una factura específica
   obtenerGuiasDisponibles: (numero_factura: string, piloto: string) =>
     api.get<ApiResponse<GuiaDisponible[]>>(

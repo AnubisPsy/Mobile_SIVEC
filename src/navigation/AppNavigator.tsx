@@ -1,18 +1,22 @@
+// src/navigation/AppNavigator.tsx
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // ✅ Agregar iconos
 import { useAuth } from '../contexts/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import FacturasScreen from '../screens/FacturasScreen';
+import SeleccionarGuiaScreen from '../screens/SeleccionarGuiaScreen'; // ✅ Nueva pantalla
 import DetalleGuiaScreen from '../screens/DetalleGuiaScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import LoadingScreen from '../screens/LoadingScreen';
 
-// Definir tipos de navegación
 type RootStackParamList = {
   MainTabs: undefined;
+  SeleccionarGuia: {
+    factura: any;
+  };
   DetalleGuia: {
     guia: any;
     onActualizar: () => void;
@@ -32,22 +36,40 @@ function AuthenticatedTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#2563eb',
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#1e293b',
+          borderTopColor: '#334155',
+          borderTopWidth: 1,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
-        headerTintColor: '#fff',
-        tabBarActiveTintColor: '#2563eb',
+        tabBarActiveTintColor: '#3b82f6',
+        tabBarInactiveTintColor: '#64748b',
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
       }}
     >
       <Tab.Screen
         name="Facturas"
         component={FacturasScreen}
-        options={{ title: 'Mis Facturas' }}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="file-document-outline" size={size} color={color} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Perfil"
         component={PerfilScreen}
-        options={{ title: 'Mi Perfil' }}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="account-circle-outline" size={size} color={color} />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
@@ -67,13 +89,31 @@ export default function AppNavigator() {
           <>
             <Stack.Screen name="MainTabs" component={AuthenticatedTabs} />
             <Stack.Screen
+              name="SeleccionarGuia"
+              component={SeleccionarGuiaScreen}
+              options={{
+                headerShown: true,
+                headerStyle: { backgroundColor: '#1e293b' },
+                headerTintColor: '#fff',
+                headerTitle: 'Seleccionar Guía',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                  fontSize: 18,
+                },
+              }}
+            />
+            <Stack.Screen
               name="DetalleGuia"
               component={DetalleGuiaScreen}
               options={{
                 headerShown: true,
-                title: 'Detalle de Guía',
-                headerStyle: { backgroundColor: '#2563eb' },
+                headerStyle: { backgroundColor: '#1e293b' },
                 headerTintColor: '#fff',
+                headerTitle: 'Detalle de Guía',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                  fontSize: 18,
+                },
               }}
             />
           </>

@@ -1,3 +1,4 @@
+// src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useContext,
@@ -6,13 +7,14 @@ import React, {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native'; // ✅ Agregar import
 import { authApi } from '../services/api';
 import { Usuario } from '../types';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: Usuario | null;
-  login: (correo: string, password: string) => Promise<boolean>;
+  login: (loginInput: string, password: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -45,15 +47,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const userData = await AsyncStorage.getItem('sivec_user');
 
       if (token && userData) {
+        const usuario = JSON.parse(userData);
+
+        // ✅ Verificar rol al cargar sesión guardada
+        if (usuario.rol_id !== 1) {
+          // No es piloto, limpiar sesión
+          await AsyncStorage.multiRemove(['sivec_token', 'sivec_user']);
+          setLoading(false);
+          return;
+        }
+
         // Verificar que el token siga siendo válido
         const response = await authApi.verificarToken();
 
         if (response.data.success) {
-          setUser(JSON.parse(userData));
+          setUser(usuario);
           setIsAuthenticated(true);
           console.log('✅ Token válido, usuario autenticado');
         } else {
-          // Token inválido, limpiar storage
           await logout();
         }
       }
@@ -77,6 +88,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       if (response.data.success) {
         const { token, usuario } = response.data.data;
+
+        // ✅ VALIDACIÓN: Solo permitir pilotos (rol_id = 1)
+        if (usuario.rol_id !== 1) {
+          Alert.alert(
+            '⚠️ Acceso denegado',
+            'Esta aplicación es exclusiva para pilotos.\n\nLos jefes y administradores deben usar el panel web.',
+            [{ text: 'Entendido' }],
+          );
+          return false;
+        }
 
         // Guardar token y datos del usuario
         await AsyncStorage.setItem('sivec_token', token);
@@ -104,18 +125,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = async () => {
     try {
-      // Llamar al endpoint de logout si hay token
       const token = await AsyncStorage.getItem('sivec_token');
       if (token) {
         try {
           await authApi.logout();
         } catch (error) {
-          // Si falla el logout del servidor, continuar con logout local
           console.log('⚠️ Error en logout del servidor, continuando...');
         }
       }
 
-      // Limpiar storage local
       await AsyncStorage.multiRemove(['sivec_token', 'sivec_user']);
 
       setUser(null);
