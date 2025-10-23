@@ -3,18 +3,23 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // ✅ Agregar iconos
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../contexts/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import FacturasScreen from '../screens/FacturasScreen';
-import SeleccionarGuiaScreen from '../screens/SeleccionarGuiaScreen'; // ✅ Nueva pantalla
+import SeleccionarGuiaScreen from '../screens/SeleccionarGuiaScreen';
 import DetalleGuiaScreen from '../screens/DetalleGuiaScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import LoadingScreen from '../screens/LoadingScreen';
+import ListaGuiasScreen from '../screens/ListaGuiasScreen';
 
 type RootStackParamList = {
   MainTabs: undefined;
   SeleccionarGuia: {
+    factura: any;
+  };
+  ListaGuias: {
+    // ← AGREGAR
     factura: any;
   };
   DetalleGuia: {
@@ -88,6 +93,23 @@ export default function AppNavigator() {
         {isAuthenticated ? (
           <>
             <Stack.Screen name="MainTabs" component={AuthenticatedTabs} />
+
+            {/* ✨ NUEVA: Lista de guías vinculadas */}
+            <Stack.Screen
+              name="ListaGuias"
+              component={ListaGuiasScreen}
+              options={{
+                headerShown: true,
+                headerStyle: { backgroundColor: '#1e293b' },
+                headerTintColor: '#fff',
+                headerTitle: 'Guías Vinculadas',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                  fontSize: 18,
+                },
+              }}
+            />
+
             <Stack.Screen
               name="SeleccionarGuia"
               component={SeleccionarGuiaScreen}
@@ -102,6 +124,7 @@ export default function AppNavigator() {
                 },
               }}
             />
+
             <Stack.Screen
               name="DetalleGuia"
               component={DetalleGuiaScreen}

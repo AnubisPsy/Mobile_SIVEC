@@ -38,7 +38,6 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
                 numero_factura: factura.numero_factura,
                 detalle_producto: guia.detalle_producto || 'Sin descripción',
                 direccion: guia.direccion_entrega || 'Sin dirección',
-                cliente: 'Cliente',
                 fecha_emision: guia.fecha_emision || new Date().toISOString(),
               });
 
@@ -113,7 +112,7 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
         <Text style={styles.title}>Guías Disponibles</Text>
         <Text style={styles.subtitle}>Factura: {factura.numero_factura}</Text>
         <Text style={styles.count}>
-          {factura.guias_disponibles.length} guía(s) disponible(s)
+          {factura.guias_disponibles.length || 0} guía(s) disponible(s)
         </Text>
       </View>
 

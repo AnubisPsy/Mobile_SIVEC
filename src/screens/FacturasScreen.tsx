@@ -38,7 +38,8 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
     if (!user?.usuario_id) return;
 
     try {
-      const response = await facturasApi.obtenerFacturasConGuiasDisponibles(
+      // Cambiar a endpoint de guías vinculadas
+      const response = await facturasApi.obtenerFacturasConGuiasVinculadas(
         user.usuario_id,
       );
 
@@ -59,6 +60,7 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
+      console.log('🔄 Pantalla enfocada, recargando facturas...');
       cargarFacturas();
     }, [user]),
   );
@@ -68,8 +70,14 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
     cargarFacturas();
   };
 
-  const verGuiasDisponibles = (factura: Factura) => {
-    navigation.navigate('SeleccionarGuia', { factura });
+  // ✨ NUEVA: Navegar a guías vinculadas (para ver/entregar)
+  const verGuiasVinculadas = (factura: any) => {
+    if (factura.total_guias === 0) {
+      Alert.alert('Sin guías', 'Esta factura aún no tiene guías vinculadas');
+      return;
+    }
+
+    navigation.navigate('ListaGuias', { factura });
   };
 
   const renderFactura = ({ item }: { item: Factura }) => {
@@ -78,7 +86,7 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={styles.facturaCard}
-        onPress={() => verGuiasDisponibles(item)}
+        onPress={() => verGuiasVinculadas(item)} // ← CORREGIDO: item en vez de facturas
         activeOpacity={0.7}
       >
         {/* Header */}
@@ -123,20 +131,20 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         )}
 
-        {/* Footer */}
+        {/* Footer - SOLO UNO */}
         <View style={styles.footer}>
           {tieneGuias ? (
             <>
               <Text style={styles.footerIcon}>✅</Text>
               <Text style={styles.footerText}>
-                Toca para ver guías disponibles →
+                Toca para ver guías vinculadas →
               </Text>
             </>
           ) : (
             <>
               <Text style={styles.footerIcon}>⏳</Text>
               <Text style={styles.footerTextWarning}>
-                Esperando guías del sistema
+                Sin guías vinculadas aún
               </Text>
             </>
           )}

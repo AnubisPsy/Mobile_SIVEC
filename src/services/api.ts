@@ -131,10 +131,15 @@ export const facturasApi = {
       `/api/facturas?piloto=${piloto}&estado_id=1`,
     ),
 
-  // ✅ NUEVO: Obtener facturas con guías disponibles
   obtenerFacturasConGuiasDisponibles: (piloto_id: number) =>
     api.get<ApiResponse<any[]>>(
       `/api/facturas/piloto/${piloto_id}/con-guias-disponibles`,
+    ),
+
+  // ✨ NUEVO: Guías ya vinculadas
+  obtenerFacturasConGuiasVinculadas: (piloto_id: number) =>
+    api.get<ApiResponse<any[]>>(
+      `/api/facturas/piloto/${piloto_id}/con-guias-vinculadas`,
     ),
 
   // Obtener guías disponibles para una factura específica
@@ -199,13 +204,25 @@ export const guiasApi = {
     numero_factura: string;
     detalle_producto?: string;
     direccion?: string;
-    cliente?: string;
     fecha_emision?: string;
   }) => api.post<ApiResponse<any>>('/api/guias', data),
 
   // Actualizar estado de guía
   actualizarEstadoGuia: (guia_id: number, estado_id: number) =>
     api.patch<ApiResponse<any>>(`/api/guias/${guia_id}/estado`, { estado_id }),
+};
+
+export const viajesApi = {
+  obtenerTodos: (params?: any) =>
+    api.get<ApiResponse<any[]>>('/api/viajes', { params }),
+
+  // ✨ NUEVO
+  obtenerHistorial: (params?: {
+    fecha_desde?: string;
+    fecha_hasta?: string;
+    piloto?: string;
+    numero_vehiculo?: string;
+  }) => api.get<ApiResponse<any[]>>('/api/viajes/historial', { params }),
 };
 
 // ==========================================
