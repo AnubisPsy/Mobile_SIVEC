@@ -12,6 +12,7 @@ import DetalleGuiaScreen from '../screens/DetalleGuiaScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import LoadingScreen from '../screens/LoadingScreen';
 import ListaGuiasScreen from '../screens/ListaGuiasScreen';
+import HistorialScreen from '../screens/HistorialScreen';
 
 type RootStackParamList = {
   MainTabs: undefined;
@@ -32,6 +33,7 @@ type RootStackParamList = {
 type TabParamList = {
   Facturas: undefined;
   Perfil: undefined;
+  Historial: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -67,6 +69,17 @@ function AuthenticatedTabs() {
           ),
         }}
       />
+
+      <Tab.Screen
+        name="Historial"
+        component={HistorialScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="history" size={size} color={color} />
+          ),
+        }}
+      />
+
       <Tab.Screen
         name="Perfil"
         component={PerfilScreen}
@@ -94,7 +107,6 @@ export default function AppNavigator() {
           <>
             <Stack.Screen name="MainTabs" component={AuthenticatedTabs} />
 
-            {/* ✨ NUEVA: Lista de guías vinculadas */}
             <Stack.Screen
               name="ListaGuias"
               component={ListaGuiasScreen}

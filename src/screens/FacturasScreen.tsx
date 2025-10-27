@@ -38,13 +38,20 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
     if (!user?.usuario_id) return;
 
     try {
-      // Cambiar a endpoint de guías vinculadas
       const response = await facturasApi.obtenerFacturasConGuiasVinculadas(
         user.usuario_id,
       );
 
       if (response.data.success) {
-        setFacturas(response.data.data);
+        // ✅ Filtrar solo facturas con guías pendientes
+        const facturasActivas = response.data.data.filter(
+          (factura: any) => factura.guias_pendientes > 0,
+        );
+
+        setFacturas(facturasActivas);
+        console.log(
+          `✅ ${facturasActivas.length} facturas activas (con guías pendientes)`,
+        );
       }
     } catch (error: any) {
       console.error('Error cargando facturas:', error);
@@ -86,7 +93,11 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={styles.facturaCard}
-        onPress={() => verGuiasVinculadas(item)} // ← CORREGIDO: item en vez de facturas
+        onPress={() => {
+          if (tieneGuias) {
+            verGuiasVinculadas(item);
+          }
+        }}
         activeOpacity={0.7}
       >
         {/* Header */}
@@ -142,15 +153,73 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
             </>
           ) : (
             <>
-              <Text style={styles.footerIcon}>⏳</Text>
-              <Text style={styles.footerTextWarning}>
-                Sin guías vinculadas aún
-              </Text>
+              <TouchableOpacity
+                style={styles.buscarGuiasButton}
+                onPress={e => {
+                  e.stopPropagation(); // Evitar que se active el onPress del card
+                  buscarYVincularGuias(item);
+                }}
+              >
+                <Text style={styles.buscarGuiasIcon}>🔍</Text>
+                <Text style={styles.buscarGuiasText}>
+                  Buscar guías disponibles
+                </Text>
+              </TouchableOpacity>
             </>
           )}
         </View>
       </TouchableOpacity>
     );
+  };
+
+  // Buscar guías disponibles en SQL Server
+  const buscarYVincularGuias = async (factura: Factura) => {
+    try {
+      console.log(
+        '🔍 Buscando guías disponibles para:',
+        factura.numero_factura,
+      );
+
+      // ✅ Usar el endpoint correcto
+      const { guiasApi } = require('../services/api');
+
+      // Este endpoint ya existe en el backend
+      const response = await facturasApi.obtenerGuiasDisponibles(
+        factura.numero_factura,
+        user?.nombre_usuario || '', // Pasar el nombre del piloto
+      );
+
+      if (response.data.success) {
+        const guiasDisponibles = response.data.data;
+
+        if (!guiasDisponibles || guiasDisponibles.length === 0) {
+          Alert.alert(
+            'Sin guías disponibles',
+            'No se encontraron guías en el sistema para esta factura.',
+          );
+          return;
+        }
+
+        // Navegar a pantalla de selección
+        navigation.navigate('SeleccionarGuia', {
+          factura: {
+            ...factura,
+            guias_disponibles: guiasDisponibles,
+          },
+        });
+      } else {
+        Alert.alert(
+          'Error',
+          response.data.message || 'No se encontraron guías',
+        );
+      }
+    } catch (error: any) {
+      console.error('Error buscando guías:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'No se pudieron buscar las guías',
+      );
+    }
   };
 
   if (loading) {
@@ -443,6 +512,26 @@ const styles = StyleSheet.create({
   refreshButtonText: {
     color: '#fff',
     fontSize: 14,
+    fontWeight: '700',
+  },
+
+  buscarGuiasButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  buscarGuiasIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  buscarGuiasText: {
+    fontSize: 14,
+    color: '#fff',
     fontWeight: '700',
   },
 });

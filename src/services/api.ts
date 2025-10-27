@@ -153,8 +153,10 @@ export const facturasApi = {
     api.get<ApiResponse<any[]>>(`/api/facturas/piloto/${piloto_id}/con-guias`),
 
   // ✨ NUEVO: Buscar guía para una factura
-  buscarGuiaParaFactura: (numero_factura: string) =>
-    api.post<ApiResponse<any>>(`/api/facturas/${numero_factura}/buscar-guia`),
+  buscarGuiasDisponiblesParaFactura: (numero_factura: string, piloto: string) =>
+    api.get<ApiResponse<any[]>>(
+      `/api/facturas/${numero_factura}/guias-disponibles?piloto=${piloto}`,
+    ),
 
   // Crear viaje con las facturas seleccionadas
   crearViaje: (datos: {
