@@ -19,6 +19,8 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   const [seleccionando, setSeleccionando] = useState(false);
 
   const seleccionarGuia = async (guia: any) => {
+    console.log('🎯 seleccionarGuia llamado con:', guia);
+
     Alert.alert(
       'Confirmar selección',
       `¿Vincular la guía ${guia.numero_guia} a esta factura?`,
@@ -29,6 +31,8 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
           onPress: async () => {
             setSeleccionando(true);
             try {
+              console.log('📤 Enviando solicitud para vincular guía...');
+
               // Importar guiasApi
               const { guiasApi } = require('../services/api');
 
@@ -41,6 +45,8 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
                 fecha_emision: guia.fecha_emision || new Date().toISOString(),
               });
 
+              console.log('✅ Respuesta:', response.data);
+
               if (response.data.success) {
                 Alert.alert('✅ Éxito', 'Guía vinculada correctamente', [
                   {
@@ -49,7 +55,6 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
                       navigation.navigate('DetalleGuia', {
                         guia: response.data.data,
                         onActualizar: () => {
-                          // Recargar la lista cuando vuelva
                           navigation.goBack();
                         },
                       });
@@ -58,7 +63,7 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
                 ]);
               }
             } catch (error: any) {
-              console.error('Error vinculando guía:', error);
+              console.error('❌ Error vinculando guía:', error);
               Alert.alert(
                 'Error',
                 error.response?.data?.error || 'No se pudo vincular la guía',
@@ -73,11 +78,7 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   };
 
   const renderGuia = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.guiaCard}
-      onPress={() => seleccionarGuia(item)}
-      disabled={seleccionando}
-    >
+    <View style={styles.guiaCard}>
       <View style={styles.guiaHeader}>
         <Text style={styles.numeroGuia}>📄 {item.numero_guia}</Text>
         <View style={styles.badge}>
@@ -100,10 +101,20 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
         <Text style={styles.valor}>{item.cantidad}</Text>
       </View>
 
-      <TouchableOpacity style={styles.selectButton}>
-        <Text style={styles.selectButtonText}>Seleccionar esta guía →</Text>
+      {/* ✅ ÚNICO TouchableOpacity con el onPress */}
+      <TouchableOpacity
+        style={styles.selectButton}
+        onPress={() => {
+          console.log('🔘 Botón presionado');
+          seleccionarGuia(item);
+        }}
+        disabled={seleccionando}
+      >
+        <Text style={styles.selectButtonText}>
+          {seleccionando ? 'Procesando...' : 'Seleccionar esta guía →'}
+        </Text>
       </TouchableOpacity>
-    </TouchableOpacity>
+    </View>
   );
 
   return (

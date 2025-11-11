@@ -43,14 +43,30 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
       );
 
       if (response.data.success) {
-        // ✅ Filtrar solo facturas con guías pendientes
-        const facturasActivas = response.data.data.filter(
-          (factura: any) => factura.guias_pendientes > 0,
-        );
+        // ✅ FILTRAR: Ocultar facturas donde TODAS las guías estén entregadas
+        const facturasActivas = response.data.data.filter((factura: any) => {
+          // Si no tiene guías vinculadas, mostrarla (para que pueda vincular)
+          if (
+            !factura.guias_vinculadas ||
+            factura.guias_vinculadas.length === 0
+          ) {
+            return true;
+          }
+
+          // Si tiene guías, verificar que NO todas estén entregadas
+          const todasEntregadas = factura.guias_vinculadas.every(
+            (guia: any) => guia.estado_id === 4,
+          );
+
+          // Mostrar solo si NO todas están entregadas
+          return !todasEntregadas;
+        });
 
         setFacturas(facturasActivas);
         console.log(
-          `✅ ${facturasActivas.length} facturas activas (con guías pendientes)`,
+          `✅ ${facturasActivas.length} facturas activas (${
+            response.data.data.length - facturasActivas.length
+          } completadas ocultas)`,
         );
       }
     } catch (error: any) {
