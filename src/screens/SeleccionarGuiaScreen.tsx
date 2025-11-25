@@ -1,4 +1,4 @@
-// src/screens/SeleccionarGuiaScreen.tsx
+// src/screens/SeleccionarGuiaScreen.tsx - SOLO ESTILOS
 import React, { useState } from 'react';
 import {
   View,
@@ -80,28 +80,27 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   const renderGuia = ({ item }: { item: any }) => (
     <View style={styles.guiaCard}>
       <View style={styles.guiaHeader}>
-        <Text style={styles.numeroGuia}>📄 {item.numero_guia}</Text>
+        <Text style={styles.numeroGuia}>{item.numero_guia}</Text>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>Disponible</Text>
+          <Text style={styles.badgeText}>DISPONIBLE</Text>
         </View>
       </View>
 
       <View style={styles.guiaInfo}>
-        <Text style={styles.label}>📦 Producto:</Text>
+        <Text style={styles.label}>PRODUCTO</Text>
         <Text style={styles.valor}>{item.descripcion}</Text>
       </View>
 
       <View style={styles.guiaInfo}>
-        <Text style={styles.label}>📍 Dirección:</Text>
+        <Text style={styles.label}>DIRECCIÓN</Text>
         <Text style={styles.valor}>{item.direccion_entrega}</Text>
       </View>
 
       <View style={styles.guiaInfo}>
-        <Text style={styles.label}>📊 Cantidad:</Text>
+        <Text style={styles.label}>CANTIDAD</Text>
         <Text style={styles.valor}>{item.cantidad}</Text>
       </View>
 
-      {/* ✅ ÚNICO TouchableOpacity con el onPress */}
       <TouchableOpacity
         style={styles.selectButton}
         onPress={() => {
@@ -109,9 +108,10 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
           seleccionarGuia(item);
         }}
         disabled={seleccionando}
+        activeOpacity={0.7}
       >
         <Text style={styles.selectButtonText}>
-          {seleccionando ? 'Procesando...' : 'Seleccionar esta guía →'}
+          {seleccionando ? 'Procesando...' : 'Seleccionar'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -120,20 +120,16 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Guías Disponibles</Text>
-        <Text style={styles.subtitle}>Factura: {factura.numero_factura}</Text>
+        <Text style={styles.title}>Buscar guía</Text>
+        <Text style={styles.subtitle}>{factura.numero_factura}</Text>
         <Text style={styles.count}>
-          {factura.guias_disponibles.length || 0} guía(s) disponible(s)
+          {factura.guias_disponibles.length || 0} disponible(s)
         </Text>
       </View>
 
       {factura.guias_disponibles.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>🔍</Text>
           <Text style={styles.emptyText}>No hay guías disponibles</Text>
-          <Text style={styles.emptySubtext}>
-            Las guías aparecerán cuando el sistema las genere
-          </Text>
         </View>
       ) : (
         <FlatList
@@ -150,87 +146,93 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#FAFAFA',
   },
   header: {
-    padding: 20,
-    backgroundColor: '#1e293b',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: '#E5E5E5',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 22,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    lineHeight: 28,
+    color: '#0A0A0A',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#94a3b8',
+    fontSize: 13,
+    color: '#6B6B6B',
     marginBottom: 8,
   },
   count: {
-    fontSize: 12,
-    color: '#3b82f6',
-    fontWeight: '600',
+    fontSize: 13,
+    color: '#6B6B6B',
   },
   lista: {
-    padding: 16,
+    paddingBottom: 24,
   },
   guiaCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#334155',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   guiaHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   numeroGuia: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: '500',
+    color: '#0A0A0A',
   },
   badge: {
-    backgroundColor: '#22c55e',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#059669',
+    borderRadius: 4,
   },
   badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#059669',
   },
   guiaInfo: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   label: {
-    fontSize: 12,
-    color: '#64748b',
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#A3A3A3',
     marginBottom: 4,
   },
   valor: {
-    fontSize: 14,
-    color: '#e2e8f0',
-    fontWeight: '500',
+    fontSize: 15,
+    color: '#0A0A0A',
   },
   selectButton: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
-    padding: 14,
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
   },
   selectButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '500',
   },
   empty: {
     flex: 1,
@@ -238,19 +240,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 32,
   },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#e2e8f0',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#64748b',
+    fontSize: 15,
+    color: '#6B6B6B',
     textAlign: 'center',
   },
 });

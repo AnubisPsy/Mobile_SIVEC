@@ -1,11 +1,10 @@
-// src/screens/LoginScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  StyleSheet as RNStyleSheet,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -43,188 +42,142 @@ const LoginScreen: React.FC = () => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={stylesLogin.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Text style={styles.icon}>🚛</Text>
-          </View>
-          <Text style={styles.title}>SIVEC</Text>
-          <Text style={styles.subtitle}>Sistema de Control de Vehículos</Text>
-          <Text style={styles.description}>App Móvil para Pilotos</Text>
+      <View style={stylesLogin.content}>
+        <View style={stylesLogin.header}>
+          <Text style={stylesLogin.title}>SIVEC</Text>
+          <Text style={stylesLogin.subtitle}>Control de Vehículos</Text>
         </View>
 
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Nombre de usuario</Text>
+        <View style={stylesLogin.form}>
+          <View style={stylesLogin.inputContainer}>
+            <Text style={stylesLogin.inputLabel}>USUARIO</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Ej: piloto_denuar"
+              style={stylesLogin.input}
+              placeholder="Nombre de usuario"
               value={loginInput}
               onChangeText={setLoginInput}
               autoCapitalize="none"
               autoCorrect={false}
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#A3A3A3"
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Contraseña</Text>
+          <View style={stylesLogin.inputContainer}>
+            <Text style={stylesLogin.inputLabel}>CONTRASEÑA</Text>
             <TextInput
-              style={styles.input}
-              placeholder="••••••••"
+              style={stylesLogin.input}
+              placeholder="Contraseña"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoCapitalize="none"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#A3A3A3"
             />
           </View>
 
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={[stylesLogin.button, loading && stylesLogin.buttonDisabled]}
             onPress={handleLogin}
             disabled={loading}
+            activeOpacity={0.7}
           >
-            <Text style={styles.buttonText}>
+            <Text style={stylesLogin.buttonText}>
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Text>
           </TouchableOpacity>
-
-          <View style={styles.infoBox}>
-            <Text style={styles.infoIcon}>ℹ️</Text>
-            <Text style={styles.infoText}>
-              Si olvidaste tu usuario o contraseña, contacta con tu jefe de
-              yarda
-            </Text>
-          </View>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>MADEYSO © 2025</Text>
-          <Text style={styles.footerSubtext}>Versión 1.0.0</Text>
+        <View style={stylesLogin.footer}>
+          <View style={stylesLogin.divider} />
+          <Text style={stylesLogin.footerText}>
+            Si olvidaste tu usuario o contraseña, contacta con tu jefe de yarda
+          </Text>
         </View>
       </View>
     </KeyboardAvoidingView>
   );
 };
 
-const styles = StyleSheet.create({
+const stylesLogin = RNStyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#FFFFFF',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
   },
   header: {
     alignItems: 'center',
     marginBottom: 48,
   },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#2563eb',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  icon: {
-    fontSize: 40,
-  },
   title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 28,
+    fontWeight: '600',
+    letterSpacing: -0.5,
+    lineHeight: 34,
+    color: '#0A0A0A',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#cbd5e1',
-    marginBottom: 4,
-  },
-  description: {
-    fontSize: 14,
-    color: '#64748b',
-    fontWeight: '600',
+    fontSize: 15,
+    color: '#6B6B6B',
   },
   form: {
     marginBottom: 32,
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#cbd5e1',
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#A3A3A3',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#1e293b',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#fff',
-    borderWidth: 2,
-    borderColor: '#334155',
+    fontSize: 15,
+    color: '#0A0A0A',
+    paddingVertical: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+    paddingBottom: 8,
   },
   button: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
-    padding: 18,
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  infoBox: {
-    flexDirection: 'row',
-    backgroundColor: '#1e293b',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3b82f6',
-  },
-  infoIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 12,
-    color: '#94a3b8',
-    lineHeight: 18,
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '500',
   },
   footer: {
     alignItems: 'center',
   },
+  divider: {
+    width: 40,
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginBottom: 16,
+  },
   footerText: {
     fontSize: 12,
-    color: '#64748b',
-    fontWeight: '600',
-  },
-  footerSubtext: {
-    fontSize: 10,
-    color: '#475569',
-    marginTop: 4,
+    color: '#A3A3A3',
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });
 

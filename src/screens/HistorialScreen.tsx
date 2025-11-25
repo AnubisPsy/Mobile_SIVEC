@@ -1,4 +1,4 @@
-// src/screens/HistorialScreen.tsx
+// src/screens/HistorialScreen.tsx - SOLO ESTILOS
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -82,30 +82,20 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
       <TouchableOpacity
         style={styles.facturaCard}
         onPress={() => verDetalleFactura(item)}
+        activeOpacity={0.7}
       >
         <View style={styles.facturaHeader}>
-          <View style={styles.facturaHeaderLeft}>
-            <View style={styles.iconContainer}>
-              <Text style={styles.icon}>
-                {porcentajeExito === 100
-                  ? '✅'
-                  : porcentajeExito === 0
-                  ? '❌'
-                  : '⚠️'}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.facturaNumero}>{item.numero_factura}</Text>
-              <Text style={styles.vehiculo}>🚛 {item.numero_vehiculo}</Text>
-            </View>
-          </View>
-
-          <View style={styles.estadisticas}>
-            <Text style={styles.estadisticaLabel}>Éxito</Text>
+          <Text style={styles.facturaNumero}>{item.numero_factura}</Text>
+          <View
+            style={[
+              styles.badge,
+              { borderColor: porcentajeExito >= 50 ? '#059669' : '#DC2626' },
+            ]}
+          >
             <Text
               style={[
-                styles.estadisticaValor,
-                { color: porcentajeExito >= 50 ? '#22c55e' : '#ef4444' },
+                styles.badgeText,
+                { color: porcentajeExito >= 50 ? '#059669' : '#DC2626' },
               ]}
             >
               {porcentajeExito}%
@@ -113,34 +103,38 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
 
+        <Text style={styles.vehiculo}>{item.numero_vehiculo}</Text>
+
         <View style={styles.resumen}>
           <View style={styles.resumenItem}>
-            <Text style={styles.resumenLabel}>Total</Text>
+            <Text style={styles.resumenLabel}>TOTAL</Text>
             <Text style={styles.resumenValor}>{item.total_guias}</Text>
           </View>
           <View style={styles.resumenItem}>
-            <Text style={[styles.resumenLabel, { color: '#22c55e' }]}>
-              Entregadas
+            <Text style={[styles.resumenLabel, { color: '#059669' }]}>
+              ENTREGADAS
             </Text>
-            <Text style={[styles.resumenValor, { color: '#22c55e' }]}>
+            <Text style={[styles.resumenValor, { color: '#059669' }]}>
               {item.guias_entregadas}
             </Text>
           </View>
           <View style={styles.resumenItem}>
-            <Text style={[styles.resumenLabel, { color: '#ef4444' }]}>
-              No entregadas
+            <Text style={[styles.resumenLabel, { color: '#DC2626' }]}>
+              NO ENTREGADAS
             </Text>
-            <Text style={[styles.resumenValor, { color: '#ef4444' }]}>
+            <Text style={[styles.resumenValor, { color: '#DC2626' }]}>
               {item.total_guias - item.guias_entregadas}
             </Text>
           </View>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.fecha}>
-            📅 {new Date(item.fecha_asignacion).toLocaleDateString('es-HN')}
-          </Text>
-        </View>
+        <Text style={styles.fecha}>
+          {new Date(item.fecha_asignacion).toLocaleDateString('es-HN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -148,8 +142,7 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text style={styles.loadingText}>Cargando historial...</Text>
+        <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
   }
@@ -158,9 +151,10 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Historial de Entregas</Text>
+        <Text style={styles.headerTitle}>Historial</Text>
         <Text style={styles.headerSubtitle}>
-          {facturasFiltradas.length} factura(s) completada(s)
+          {facturasFiltradas.length}{' '}
+          {facturasFiltradas.length === 1 ? 'entrega' : 'entregas'}
         </Text>
       </View>
 
@@ -169,6 +163,7 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
         <TouchableOpacity
           style={[styles.filtroBtn, filtro === 'todas' && styles.filtroActivo]}
           onPress={() => setFiltro('todas')}
+          activeOpacity={0.7}
         >
           <Text
             style={[
@@ -186,6 +181,7 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
             filtro === 'entregadas' && styles.filtroActivo,
           ]}
           onPress={() => setFiltro('entregadas')}
+          activeOpacity={0.7}
         >
           <Text
             style={[
@@ -193,7 +189,7 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
               filtro === 'entregadas' && styles.filtroActivoText,
             ]}
           >
-            ✅ Entregadas
+            Entregadas
           </Text>
         </TouchableOpacity>
 
@@ -203,6 +199,7 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
             filtro === 'no_entregadas' && styles.filtroActivo,
           ]}
           onPress={() => setFiltro('no_entregadas')}
+          activeOpacity={0.7}
         >
           <Text
             style={[
@@ -210,7 +207,7 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
               filtro === 'no_entregadas' && styles.filtroActivoText,
             ]}
           >
-            ❌ No entregadas
+            No entregadas
           </Text>
         </TouchableOpacity>
       </View>
@@ -218,13 +215,7 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
       {/* Lista */}
       {facturasFiltradas.length === 0 ? (
         <View style={styles.centerContainer}>
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📦</Text>
-            <Text style={styles.emptyText}>No hay facturas completadas</Text>
-            <Text style={styles.emptySubtext}>
-              Las facturas aparecerán aquí cuando completes todas sus entregas
-            </Text>
-          </View>
+          <Text style={styles.emptyText}>No hay entregas en el historial</Text>
         </View>
       ) : (
         <FlatList
@@ -236,8 +227,8 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#3b82f6"
-              colors={['#3b82f6']}
+              tintColor="#2563EB"
+              colors={['#2563EB']}
             />
           }
         />
@@ -249,7 +240,7 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#FAFAFA',
   },
   centerContainer: {
     flex: 1,
@@ -258,163 +249,121 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   header: {
-    backgroundColor: '#1e293b',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
-    padding: 20,
+    borderBottomColor: '#E5E5E5',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 22,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    lineHeight: 28,
+    color: '#0A0A0A',
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#94a3b8',
+    fontSize: 13,
+    color: '#6B6B6B',
   },
   filtros: {
     flexDirection: 'row',
-    padding: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
     gap: 8,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   filtroBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: '#334155',
-    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   filtroActivo: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   filtroBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#94a3b8',
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B6B6B',
   },
   filtroActivoText: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
   lista: {
-    padding: 16,
+    paddingBottom: 24,
   },
   facturaCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#334155',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   facturaHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155',
-  },
-  facturaHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#334155',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  icon: {
-    fontSize: 24,
+    marginBottom: 4,
   },
   facturaNumero: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
+    fontWeight: '500',
+    color: '#0A0A0A',
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderRadius: 4,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   vehiculo: {
-    fontSize: 14,
-    color: '#94a3b8',
-  },
-  estadisticas: {
-    alignItems: 'center',
-  },
-  estadisticaLabel: {
-    fontSize: 10,
-    color: '#64748b',
-    marginBottom: 4,
-  },
-  estadisticaValor: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 13,
+    color: '#6B6B6B',
+    marginBottom: 12,
   },
   resumen: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 12,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   resumenItem: {
     alignItems: 'center',
   },
   resumenLabel: {
     fontSize: 11,
-    color: '#94a3b8',
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#A3A3A3',
     marginBottom: 4,
   },
   resumenValor: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#e2e8f0',
-  },
-  footer: {
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#334155',
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#0A0A0A',
   },
   fecha: {
     fontSize: 12,
-    color: '#64748b',
-    textAlign: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#cbd5e1',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    backgroundColor: '#1e293b',
-    padding: 32,
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 320,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
+    color: '#A3A3A3',
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#e2e8f0',
-    marginBottom: 8,
+    fontSize: 15,
+    color: '#6B6B6B',
     textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 20,
   },
 });
 

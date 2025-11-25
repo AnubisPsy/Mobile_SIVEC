@@ -1,11 +1,25 @@
-import React from "react";
-import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+// src/screens/LoadingScreen.tsx
+import React from 'react';
+import { View, Text, ActivityIndicator, StyleSheet, Image } from 'react-native';
+import { colors, spacing, typography } from '../styles/theme';
 
 const LoadingScreen: React.FC = () => {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#2563eb" />
-      <Text style={styles.text}>Cargando SIVEC...</Text>
+      <View style={styles.content}>
+        <Image
+          source={require('../assets/images/sivec-icon-only.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>SIVEC</Text>
+        <ActivityIndicator
+          size="large"
+          color={colors.accent}
+          style={styles.spinner}
+        />
+        <Text style={styles.subtitle}>Cargando...</Text>
+      </View>
     </View>
   );
 };
@@ -13,14 +27,29 @@ const LoadingScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: colors.bgElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  text: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#64748b",
+  content: {
+    alignItems: 'center',
+  },
+  logo: {
+    width: 64,
+    height: 64,
+    marginBottom: spacing.md,
+  },
+  title: {
+    ...typography.h1,
+    color: colors.text,
+    marginBottom: spacing.xl,
+  },
+  spinner: {
+    marginBottom: spacing.md,
+  },
+  subtitle: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
   },
 });
 

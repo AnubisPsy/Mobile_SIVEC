@@ -1,4 +1,4 @@
-// src/navigation/AppNavigator.tsx
+// src/navigation/AppNavigator.tsx - SOLO ESTILOS
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -20,7 +20,6 @@ type RootStackParamList = {
     factura: any;
   };
   ListaGuias: {
-    // ← AGREGAR
     factura: any;
   };
   DetalleGuia: {
@@ -45,18 +44,18 @@ function AuthenticatedTabs() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#1e293b',
-          borderTopColor: '#334155',
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E5E5E5',
           borderTopWidth: 1,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: '#3b82f6',
-        tabBarInactiveTintColor: '#64748b',
+        tabBarActiveTintColor: '#2563EB',
+        tabBarInactiveTintColor: '#A3A3A3',
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '600',
+          fontWeight: '500',
         },
       }}
     >
@@ -112,12 +111,19 @@ export default function AppNavigator() {
               component={ListaGuiasScreen}
               options={{
                 headerShown: true,
-                headerStyle: { backgroundColor: '#1e293b' },
-                headerTintColor: '#fff',
-                headerTitle: 'Guías Vinculadas',
+                headerStyle: {
+                  backgroundColor: '#FFFFFF',
+                  elevation: 0,
+                  shadowOpacity: 0,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#E5E5E5',
+                },
+                headerTintColor: '#2563EB',
+                headerTitle: 'Guías',
                 headerTitleStyle: {
-                  fontWeight: 'bold',
+                  fontWeight: '500',
                   fontSize: 18,
+                  color: '#0A0A0A',
                 },
               }}
             />
@@ -127,12 +133,19 @@ export default function AppNavigator() {
               component={SeleccionarGuiaScreen}
               options={{
                 headerShown: true,
-                headerStyle: { backgroundColor: '#1e293b' },
-                headerTintColor: '#fff',
-                headerTitle: 'Seleccionar Guía',
+                headerStyle: {
+                  backgroundColor: '#FFFFFF',
+                  elevation: 0,
+                  shadowOpacity: 0,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#E5E5E5',
+                },
+                headerTintColor: '#2563EB',
+                headerTitle: 'Buscar guía',
                 headerTitleStyle: {
-                  fontWeight: 'bold',
+                  fontWeight: '500',
                   fontSize: 18,
+                  color: '#0A0A0A',
                 },
               }}
             />
@@ -142,12 +155,19 @@ export default function AppNavigator() {
               component={DetalleGuiaScreen}
               options={{
                 headerShown: true,
-                headerStyle: { backgroundColor: '#1e293b' },
-                headerTintColor: '#fff',
-                headerTitle: 'Detalle de Guía',
+                headerStyle: {
+                  backgroundColor: '#FFFFFF',
+                  elevation: 0,
+                  shadowOpacity: 0,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#E5E5E5',
+                },
+                headerTintColor: '#2563EB',
+                headerTitle: 'Detalle de guía',
                 headerTitleStyle: {
-                  fontWeight: 'bold',
+                  fontWeight: '500',
                   fontSize: 18,
+                  color: '#0A0A0A',
                 },
               }}
             />

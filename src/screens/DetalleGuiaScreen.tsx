@@ -114,13 +114,13 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   const getEstadoColor = (estadoCodigo: string) => {
     switch (estadoCodigo) {
       case 'guia_asignada':
-        return { bg: '#dbeafe', text: '#1e40af', icon: '📋' };
+        return { color: '#6B6B6B', label: 'PENDIENTE' };
       case 'guia_entregada':
-        return { bg: '#dcfce7', text: '#166534', icon: '✅' };
+        return { color: '#059669', label: 'ENTREGADA' };
       case 'guia_no_entregada':
-        return { bg: '#fee2e2', text: '#991b1b', icon: '❌' };
+        return { color: '#DC2626', label: 'NO ENTREGADA' };
       default:
-        return { bg: '#f1f5f9', text: '#475569', icon: '📄' };
+        return { color: '#A3A3A3', label: 'DESCONOCIDO' };
     }
   };
 
@@ -130,32 +130,30 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Header con estado */}
-        <View style={[styles.estadoCard, { backgroundColor: estadoInfo.bg }]}>
-          <Text style={styles.estadoIcon}>{estadoInfo.icon}</Text>
-          <Text style={[styles.estadoTexto, { color: estadoInfo.text }]}>
-            {guia.estados.nombre}
+        {/* Estado actual */}
+        <View style={styles.estadoContainer}>
+          <Text style={styles.estadoLabel}>ESTADO</Text>
+          <Text style={[styles.estadoValor, { color: estadoInfo.color }]}>
+            {estadoInfo.label}
           </Text>
         </View>
 
-        {/* Información de la guía */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Información de la Guía</Text>
-
+        {/* Información principal */}
+        <View style={styles.section}>
           <View style={styles.infoRow}>
-            <Text style={styles.label}>Número de Guía:</Text>
-            <Text style={styles.valor}>{guia.numero_guia}</Text>
+            <Text style={styles.infoLabel}>GUÍA</Text>
+            <Text style={styles.infoValue}>{guia.numero_guia}</Text>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.label}>Factura:</Text>
-            <Text style={styles.valor}>{guia.numero_factura}</Text>
+            <Text style={styles.infoLabel}>FACTURA</Text>
+            <Text style={styles.infoValue}>{guia.numero_factura}</Text>
           </View>
 
           {guia.fecha_emision && (
             <View style={styles.infoRow}>
-              <Text style={styles.label}>Fecha de Emisión:</Text>
-              <Text style={styles.valor}>
+              <Text style={styles.infoLabel}>EMISIÓN</Text>
+              <Text style={styles.infoValue}>
                 {new Date(guia.fecha_emision).toLocaleDateString('es-HN')}
               </Text>
             </View>
@@ -163,8 +161,8 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
 
           {guia.fecha_entrega && (
             <View style={styles.infoRow}>
-              <Text style={styles.label}>Fecha de Entrega:</Text>
-              <Text style={styles.valor}>
+              <Text style={styles.infoLabel}>ENTREGA</Text>
+              <Text style={styles.infoValue}>
                 {new Date(guia.fecha_entrega).toLocaleDateString('es-HN')}
               </Text>
             </View>
@@ -173,33 +171,27 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
 
         {/* Dirección */}
         {guia.direccion && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>📍</Text>
-              <Text style={styles.cardTitle}>Dirección de Entrega</Text>
-            </View>
-            <Text style={styles.direccionTexto}>{guia.direccion}</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>DIRECCIÓN DE ENTREGA</Text>
+            <Text style={styles.sectionText}>{guia.direccion}</Text>
           </View>
         )}
 
         {/* Producto */}
         {guia.detalle_producto && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>📦</Text>
-              <Text style={styles.cardTitle}>Detalle del Producto</Text>
-            </View>
-            <Text style={styles.productoTexto}>{guia.detalle_producto}</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>DETALLE DEL PRODUCTO</Text>
+            <Text style={styles.sectionText}>{guia.detalle_producto}</Text>
           </View>
         )}
 
         {/* Mensaje si ya está procesada */}
         {!puedeActualizar && (
-          <View style={styles.infoMessage}>
-            <Text style={styles.infoMessageText}>
+          <View style={styles.messageContainer}>
+            <Text style={styles.messageText}>
               {guia.estados.codigo === 'guia_entregada'
-                ? '✅ Esta guía ya fue marcada como entregada'
-                : '❌ Esta guía ya fue marcada como no entregada'}
+                ? 'Esta guía ya fue marcada como entregada'
+                : 'Esta guía ya fue marcada como no entregada'}
             </Text>
           </View>
         )}
@@ -209,32 +201,30 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
       {puedeActualizar && (
         <View style={styles.footer}>
           <TouchableOpacity
-            style={[styles.button, styles.buttonNoEntregada]}
+            style={[styles.button, styles.buttonSecondary]}
             onPress={() => actualizarEstado('no_entregada')}
             disabled={actualizando}
+            activeOpacity={0.7}
           >
             {actualizando ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color="#DC2626" />
             ) : (
-              <>
-                <Text style={styles.buttonIcon}>❌</Text>
-                <Text style={styles.buttonText}>No Entregada</Text>
-              </>
+              <Text style={[styles.buttonText, { color: '#DC2626' }]}>
+                No entregada
+              </Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.buttonEntregada]}
+            style={[styles.button, styles.buttonPrimary]}
             onPress={() => actualizarEstado('entregada')}
             disabled={actualizando}
+            activeOpacity={0.7}
           >
             {actualizando ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <>
-                <Text style={styles.buttonIcon}>✅</Text>
-                <Text style={styles.buttonText}>Entregada</Text>
-              </>
+              <Text style={styles.buttonTextPrimary}>Entregada</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -246,118 +236,117 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#FAFAFA',
   },
   content: {
-    padding: 16,
+    paddingBottom: 32,
   },
-  estadoCard: {
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  estadoIcon: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  estadoTexto: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cardIcon: {
-    fontSize: 24,
-    marginRight: 8,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-  infoRow: {
-    marginBottom: 12,
-    paddingBottom: 12,
+  estadoContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: '#E5E5E5',
+    alignItems: 'center',
   },
-  label: {
-    fontSize: 12,
-    color: '#64748b',
+  estadoLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#A3A3A3',
     marginBottom: 4,
   },
-  valor: {
-    fontSize: 16,
-    color: '#1e293b',
-    fontWeight: '500',
+  estadoValor: {
+    fontSize: 28,
+    fontWeight: '600',
+    letterSpacing: -0.5,
+    lineHeight: 34,
   },
-  direccionTexto: {
-    fontSize: 15,
-    color: '#1e293b',
-    lineHeight: 22,
+  section: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
-  productoTexto: {
-    fontSize: 15,
-    color: '#1e293b',
-    lineHeight: 22,
-  },
-  infoMessage: {
-    backgroundColor: '#f1f5f9',
-    padding: 16,
-    borderRadius: 8,
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 8,
   },
-  infoMessageText: {
-    fontSize: 14,
-    color: '#475569',
-    textAlign: 'center',
+  infoLabel: {
+    fontSize: 11,
     fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#A3A3A3',
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#0A0A0A',
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#A3A3A3',
+    marginBottom: 16,
+  },
+  sectionText: {
+    fontSize: 15,
+    color: '#0A0A0A',
+    lineHeight: 22,
+  },
+  messageContainer: {
+    marginHorizontal: 24,
+    marginTop: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    borderRadius: 4,
+  },
+  messageText: {
+    fontSize: 13,
+    color: '#6B6B6B',
+    textAlign: 'center',
   },
   footer: {
     flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-    backgroundColor: '#fff',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    gap: 16,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#E5E5E5',
   },
   button: {
     flex: 1,
-    flexDirection: 'row',
+    paddingVertical: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
+    minHeight: 48,
   },
-  buttonEntregada: {
-    backgroundColor: '#16a34a',
+  buttonPrimary: {
+    backgroundColor: '#059669',
   },
-  buttonNoEntregada: {
-    backgroundColor: '#dc2626',
-  },
-  buttonIcon: {
-    fontSize: 20,
+  buttonSecondary: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DC2626',
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  buttonTextPrimary: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#FFFFFF',
   },
 });
 

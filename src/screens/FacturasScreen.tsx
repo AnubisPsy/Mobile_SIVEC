@@ -118,72 +118,45 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
       >
         {/* Header */}
         <View style={styles.facturaHeader}>
-          <View style={styles.facturaHeaderLeft}>
-            <View style={styles.iconContainer}>
-              <Text style={styles.icon}>📄</Text>
-            </View>
-            <View>
-              <Text style={styles.facturaNumero}>{item.numero_factura}</Text>
-              <Text style={styles.vehiculo}>🚛 {item.numero_vehiculo}</Text>
-            </View>
-          </View>
-
-          <View
-            style={[
-              styles.badge,
-              tieneGuias ? styles.badgeSuccess : styles.badgeWarning,
-            ]}
-          >
-            <Text style={styles.badgeText}>
-              {tieneGuias
-                ? `${item.total_guias} guía${item.total_guias > 1 ? 's' : ''}`
-                : 'Sin guías'}
-            </Text>
+          <Text style={styles.facturaNumero}>{item.numero_factura}</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.total_guias}</Text>
           </View>
         </View>
 
-        {/* Fecha */}
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>📅 Fecha de asignación:</Text>
-          <Text style={styles.infoValue}>
-            {new Date(item.fecha_asignacion).toLocaleDateString('es-HN')}
-          </Text>
-        </View>
+        <Text style={styles.vehiculo}>{item.numero_vehiculo}</Text>
 
         {/* Notas del jefe */}
         {item.notas_jefe && (
           <View style={styles.notasContainer}>
-            <Text style={styles.notasLabel}>📝 Nota del jefe:</Text>
             <Text style={styles.notasTexto}>{item.notas_jefe}</Text>
           </View>
         )}
 
-        {/* Footer - SOLO UNO */}
-        <View style={styles.footer}>
-          {tieneGuias ? (
-            <>
-              <Text style={styles.footerIcon}>✅</Text>
-              <Text style={styles.footerText}>
-                Toca para ver guías vinculadas →
-              </Text>
-            </>
-          ) : (
-            <>
-              <TouchableOpacity
-                style={styles.buscarGuiasButton}
-                onPress={e => {
-                  e.stopPropagation(); // Evitar que se active el onPress del card
-                  buscarYVincularGuias(item);
-                }}
-              >
-                <Text style={styles.buscarGuiasIcon}>🔍</Text>
-                <Text style={styles.buscarGuiasText}>
-                  Buscar guías disponibles
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+        {/* Fecha */}
+        <Text style={styles.fecha}>
+          {new Date(item.fecha_asignacion).toLocaleDateString('es-HN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </Text>
+
+        {/* Botón buscar guías si no tiene */}
+        {!tieneGuias && (
+          <TouchableOpacity
+            style={styles.buscarButton}
+            onPress={e => {
+              e.stopPropagation();
+              buscarYVincularGuias(item);
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buscarButtonText}>
+              Buscar guías disponibles
+            </Text>
+          </TouchableOpacity>
+        )}
       </TouchableOpacity>
     );
   };
@@ -241,10 +214,7 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#3b82f6" />
-          <Text style={styles.loadingText}>Cargando facturas...</Text>
-        </View>
+        <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
   }
@@ -253,32 +223,13 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header personalizado */}
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.headerTitle}>Mis Facturas</Text>
-            <Text style={styles.headerSubtitle}>👨‍✈️ {user?.nombre_usuario}</Text>
-          </View>
-          <View style={styles.countBadge}>
-            <Text style={styles.countNumber}>{facturas.length}</Text>
-            <Text style={styles.countLabel}>facturas</Text>
-          </View>
-        </View>
+        <Text style={styles.headerTitle}>Facturas</Text>
+        <Text style={styles.headerSubtitle}>{user?.nombre_usuario}</Text>
       </View>
 
       {facturas.length === 0 ? (
         <View style={styles.centerContainer}>
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-              <Text style={styles.emptyIcon}>📋</Text>
-            </View>
-            <Text style={styles.emptyText}>No tienes facturas asignadas</Text>
-            <Text style={styles.emptySubtext}>
-              Cuando tu jefe te asigne facturas, aparecerán aquí
-            </Text>
-            <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-              <Text style={styles.refreshButtonText}>🔄 Actualizar</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.emptyText}>No tienes facturas asignadas</Text>
         </View>
       ) : (
         <FlatList
@@ -290,8 +241,8 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#3b82f6"
-              colors={['#3b82f6']}
+              tintColor="#2563EB"
+              colors={['#2563EB']}
             />
           }
         />
@@ -303,7 +254,7 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#FAFAFA',
   },
   centerContainer: {
     flex: 1,
@@ -312,243 +263,98 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   header: {
-    backgroundColor: '#1e293b',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    borderBottomColor: '#E5E5E5',
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 22,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    lineHeight: 28,
+    color: '#0A0A0A',
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#64748b',
-  },
-  countBadge: {
-    backgroundColor: '#2563eb',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    alignItems: 'center',
-    minWidth: 60,
-  },
-  countNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  countLabel: {
-    fontSize: 10,
-    color: '#cbd5e1',
-    marginTop: 2,
+    fontSize: 13,
+    color: '#6B6B6B',
   },
   lista: {
     padding: 16,
   },
   facturaCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#334155',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   facturaHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155',
-  },
-  facturaHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#334155',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  icon: {
-    fontSize: 24,
+    marginBottom: 4,
   },
   facturaNumero: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  vehiculo: {
-    fontSize: 14,
-    color: '#94a3b8',
+    fontWeight: '500',
+    color: '#0A0A0A',
   },
   badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  badgeSuccess: {
-    backgroundColor: '#22c55e',
-  },
-  badgeWarning: {
-    backgroundColor: '#f59e0b',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
-  infoRow: {
-    marginBottom: 12,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: '#64748b',
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#e2e8f0',
-    fontWeight: '500',
+  vehiculo: {
+    fontSize: 13,
+    color: '#6B6B6B',
+    marginBottom: 8,
   },
   notasContainer: {
-    backgroundColor: '#fef3c7',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#f59e0b',
-  },
-  notasLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#92400e',
-    marginBottom: 4,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 4,
+    marginBottom: 8,
   },
   notasTexto: {
-    fontSize: 14,
-    color: '#78350f',
-    lineHeight: 20,
+    fontSize: 13,
+    color: '#0A0A0A',
+    lineHeight: 18,
   },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#334155',
+  fecha: {
+    fontSize: 12,
+    color: '#A3A3A3',
   },
-  footerIcon: {
-    fontSize: 18,
-    marginRight: 8,
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#3b82f6',
-    fontWeight: '600',
-  },
-  footerTextWarning: {
-    fontSize: 14,
-    color: '#94a3b8',
-    fontWeight: '500',
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    backgroundColor: '#1e293b',
-    padding: 32,
-    borderRadius: 16,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#cbd5e1',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    backgroundColor: '#1e293b',
-    padding: 32,
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 320,
-  },
-  emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#334155',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  emptyIcon: {
-    fontSize: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#e2e8f0',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  refreshButton: {
-    backgroundColor: '#2563eb',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  refreshButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-
-  buscarGuiasButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2563eb',
+  buscarButton: {
+    marginTop: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#2563EB',
+    alignItems: 'center',
   },
-  buscarGuiasIcon: {
-    fontSize: 18,
-    marginRight: 8,
+  buscarButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#2563EB',
   },
-  buscarGuiasText: {
-    fontSize: 14,
-    color: '#fff',
-    fontWeight: '700',
+  emptyText: {
+    fontSize: 15,
+    color: '#6B6B6B',
+    textAlign: 'center',
   },
 });
 
