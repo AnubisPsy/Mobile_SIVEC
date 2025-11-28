@@ -1,4 +1,4 @@
-// src/screens/HistorialScreen.tsx - SOLO ESTILOS
+// src/screens/HistorialScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,20 +10,34 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
-import { facturasApi } from '../services/api';
+import { viajesApi } from '../services/api';
 
 interface Props {
   navigation: any;
 }
 
+interface Viaje {
+  viaje_id: number;
+  numero_vehiculo: string;
+  piloto: string;
+  fecha_viaje: string;
+  estado_viaje: number;
+  created_at: string;
+  updated_at: string;
+  total_facturas: number;
+  total_guias: number;
+  guias_entregadas: number;
+  guias_no_entregadas: number;
+}
+
 const HistorialScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useAuth();
-  const [facturas, setFacturas] = useState<any[]>([]);
+  const [viajes, setViajes] = useState<Viaje[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filtro, setFiltro] = useState<
-    'todas' | 'entregadas' | 'no_entregadas'
-  >('todas');
+  const [filtro, setFiltro] = useState<'todos' | 'exitosos' | 'con_fallos'>(
+    'todos',
+  );
 
   useEffect(() => {
     cargarHistorial();
@@ -33,22 +47,38 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
     if (!user?.usuario_id) return;
 
     try {
-      const response = await facturasApi.obtenerFacturasConGuiasVinculadas(
-        user.usuario_id,
-      );
+      const response = await viajesApi.obtenerViajesPiloto(user.usuario_id);
 
-      if (response.data.success) {
-        // ✅ Filtrar solo facturas COMPLETADAS (sin guías pendientes)
-        const facturasCompletadas = response.data.data.filter(
-          (factura: any) =>
-            factura.guias_pendientes === 0 && factura.total_guias > 0,
-        );
+      if (response.data.success && response.data.data) {
+        const todosLosViajes = response.data.data;
 
-        setFacturas(facturasCompletadas);
-        console.log(`📋 ${facturasCompletadas.length} facturas en historial`);
+        // Obtener fecha de hoy sin usar Date.toISOString()
+        const ahora = new Date();
+        const year = ahora.getFullYear();
+        const month = String(ahora.getMonth() + 1).padStart(2, '0');
+        const day = String(ahora.getDate()).padStart(2, '0');
+        const hoyStr = `${year}-${month}-${day}`;
+
+        // Filtrar: Solo viajes completados del día actual
+        const viajesHoy = todosLosViajes.filter((viaje: any) => {
+          if (viaje.estado_viaje !== 9) return false;
+          if (!viaje.updated_at) return false;
+
+          try {
+            const fechaViaje = viaje.updated_at.split('T')[0];
+            return fechaViaje === hoyStr;
+          } catch (err) {
+            return false;
+          }
+        });
+
+        setViajes(viajesHoy);
+      } else {
+        setViajes([]);
       }
     } catch (error: any) {
-      console.error('Error cargando historial:', error);
+      console.error('Error cargando historial');
+      setViajes([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -60,56 +90,104 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
     cargarHistorial();
   };
 
-  const verDetalleFactura = (factura: any) => {
-    navigation.navigate('ListaGuias', { factura });
-  };
+  const viajesFiltrados = viajes.filter(viaje => {
+    if (filtro === 'todos') return true;
 
-  const facturasFiltradas = facturas.filter(factura => {
-    if (filtro === 'todas') return true;
-    if (filtro === 'entregadas')
-      return factura.guias_entregadas === factura.total_guias;
-    if (filtro === 'no_entregadas') return factura.guias_entregadas === 0;
+    const porcentajeExito =
+      viaje.total_guias > 0
+        ? Math.round((viaje.guias_entregadas / viaje.total_guias) * 100)
+        : 0;
+
+    if (filtro === 'exitosos') return porcentajeExito === 100;
+    if (filtro === 'con_fallos')
+      return porcentajeExito < 100 && porcentajeExito > 0;
+
     return true;
   });
 
-  const renderFactura = ({ item }: { item: any }) => {
+  const renderViaje = ({ item }: { item: Viaje }) => {
     const porcentajeExito =
       item.total_guias > 0
         ? Math.round((item.guias_entregadas / item.total_guias) * 100)
         : 0;
 
+    // Extraer hora sin usar Date()
+    let horaActualizacion = '--:--';
+    try {
+      const partes = item.updated_at.split('T');
+      if (partes.length > 1) {
+        const horaParte = partes[1].split(':');
+        if (horaParte.length >= 2) {
+          let hora = parseInt(horaParte[0]);
+          const minuto = horaParte[1];
+
+          // Ajustar UTC a Honduras (UTC-6)
+          hora = hora - 6;
+          if (hora < 0) hora += 24;
+
+          // Formato 12 horas
+          const periodo = hora >= 12 ? 'p. m.' : 'a. m.';
+          if (hora > 12) hora -= 12;
+          if (hora === 0) hora = 12;
+
+          horaActualizacion = `${hora}:${minuto} ${periodo}`;
+        }
+      }
+    } catch (err) {
+      // Silenciar error
+    }
+
     return (
-      <TouchableOpacity
-        style={styles.facturaCard}
-        onPress={() => verDetalleFactura(item)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.facturaHeader}>
-          <Text style={styles.facturaNumero}>{item.numero_factura}</Text>
+      <View style={styles.viajeCard}>
+        <View style={styles.viajeHeader}>
+          <View style={styles.vehiculoContainer}>
+            <Text style={styles.vehiculoIcon}>🚛</Text>
+            <Text style={styles.vehiculoNumero}>{item.numero_vehiculo}</Text>
+          </View>
           <View
             style={[
               styles.badge,
-              { borderColor: porcentajeExito >= 50 ? '#059669' : '#DC2626' },
+              {
+                backgroundColor:
+                  porcentajeExito === 100
+                    ? '#ECFDF5'
+                    : porcentajeExito >= 50
+                    ? '#FEF3C7'
+                    : '#FEE2E2',
+                borderColor:
+                  porcentajeExito === 100
+                    ? '#059669'
+                    : porcentajeExito >= 50
+                    ? '#F59E0B'
+                    : '#DC2626',
+              },
             ]}
           >
             <Text
               style={[
                 styles.badgeText,
-                { color: porcentajeExito >= 50 ? '#059669' : '#DC2626' },
+                {
+                  color:
+                    porcentajeExito === 100
+                      ? '#059669'
+                      : porcentajeExito >= 50
+                      ? '#F59E0B'
+                      : '#DC2626',
+                },
               ]}
             >
-              {porcentajeExito}%
+              {porcentajeExito}% exitoso
             </Text>
           </View>
         </View>
 
-        <Text style={styles.vehiculo}>{item.numero_vehiculo}</Text>
+        <Text style={styles.hora}>{horaActualizacion}</Text>
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoLabel}>FACTURAS: {item.total_facturas}</Text>
+        </View>
 
         <View style={styles.resumen}>
-          <View style={styles.resumenItem}>
-            <Text style={styles.resumenLabel}>TOTAL</Text>
-            <Text style={styles.resumenValor}>{item.total_guias}</Text>
-          </View>
           <View style={styles.resumenItem}>
             <Text style={[styles.resumenLabel, { color: '#059669' }]}>
               ENTREGADAS
@@ -123,19 +201,34 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
               NO ENTREGADAS
             </Text>
             <Text style={[styles.resumenValor, { color: '#DC2626' }]}>
-              {item.total_guias - item.guias_entregadas}
+              {item.guias_no_entregadas}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.fecha}>
-          {new Date(item.fecha_asignacion).toLocaleDateString('es-HN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
-        </Text>
-      </TouchableOpacity>
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${porcentajeExito}%`,
+                  backgroundColor:
+                    porcentajeExito === 100
+                      ? '#059669'
+                      : porcentajeExito >= 50
+                      ? '#F59E0B'
+                      : '#DC2626',
+                },
+              ]}
+            />
+          </View>
+          <Text style={styles.progressText}>
+            {item.guias_entregadas} / {item.guias_no_entregadas} de{' '}
+            {item.total_guias}
+          </Text>
+        </View>
+      </View>
     );
   };
 
@@ -149,79 +242,79 @@ const HistorialScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Historial</Text>
         <Text style={styles.headerSubtitle}>
-          {facturasFiltradas.length}{' '}
-          {facturasFiltradas.length === 1 ? 'entrega' : 'entregas'}
+          {viajesFiltrados.length}{' '}
+          {viajesFiltrados.length === 1
+            ? 'viaje completado'
+            : 'viajes completados'}{' '}
+          hoy
         </Text>
       </View>
 
-      {/* Filtros */}
       <View style={styles.filtros}>
         <TouchableOpacity
-          style={[styles.filtroBtn, filtro === 'todas' && styles.filtroActivo]}
-          onPress={() => setFiltro('todas')}
+          style={[styles.filtroBtn, filtro === 'todos' && styles.filtroActivo]}
+          onPress={() => setFiltro('todos')}
           activeOpacity={0.7}
         >
           <Text
             style={[
               styles.filtroBtnText,
-              filtro === 'todas' && styles.filtroActivoText,
+              filtro === 'todos' && styles.filtroActivoText,
             ]}
           >
-            Todas
+            Todos
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.filtroBtn,
-            filtro === 'entregadas' && styles.filtroActivo,
+            filtro === 'exitosos' && styles.filtroActivo,
           ]}
-          onPress={() => setFiltro('entregadas')}
+          onPress={() => setFiltro('exitosos')}
           activeOpacity={0.7}
         >
           <Text
             style={[
               styles.filtroBtnText,
-              filtro === 'entregadas' && styles.filtroActivoText,
+              filtro === 'exitosos' && styles.filtroActivoText,
             ]}
           >
-            Entregadas
+            100% Exitosos
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.filtroBtn,
-            filtro === 'no_entregadas' && styles.filtroActivo,
+            filtro === 'con_fallos' && styles.filtroActivo,
           ]}
-          onPress={() => setFiltro('no_entregadas')}
+          onPress={() => setFiltro('con_fallos')}
           activeOpacity={0.7}
         >
           <Text
             style={[
               styles.filtroBtnText,
-              filtro === 'no_entregadas' && styles.filtroActivoText,
+              filtro === 'con_fallos' && styles.filtroActivoText,
             ]}
           >
-            No entregadas
+            Con Fallos
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Lista */}
-      {facturasFiltradas.length === 0 ? (
+      {viajesFiltrados.length === 0 ? (
         <View style={styles.centerContainer}>
-          <Text style={styles.emptyText}>No hay entregas en el historial</Text>
+          <Text style={styles.emptyText}>No hay viajes completados hoy</Text>
         </View>
       ) : (
         <FlatList
-          data={facturasFiltradas}
-          renderItem={renderFactura}
-          keyExtractor={item => item.factura_id.toString()}
+          data={viajesFiltrados}
+          renderItem={renderViaje}
+          keyExtractor={item => item.viaje_id.toString()}
           contentContainerStyle={styles.lista}
           refreshControl={
             <RefreshControl
@@ -299,46 +392,62 @@ const styles = StyleSheet.create({
   lista: {
     paddingBottom: 24,
   },
-  facturaCard: {
+  viajeCard: {
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
   },
-  facturaHeader: {
+  viajeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
   },
-  facturaNumero: {
+  vehiculoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  vehiculoIcon: {
+    fontSize: 20,
+  },
+  vehiculoNumero: {
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#0A0A0A',
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderWidth: 1.5,
+    borderRadius: 6,
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  vehiculo: {
+  hora: {
     fontSize: 13,
     color: '#6B6B6B',
     marginBottom: 12,
+  },
+  infoContainer: {
+    marginBottom: 12,
+  },
+  infoLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B6B6B',
   },
   resumen: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 12,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   resumenItem: {
     alignItems: 'center',
@@ -348,17 +457,29 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    color: '#A3A3A3',
     marginBottom: 4,
   },
   resumenValor: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#0A0A0A',
+    fontSize: 20,
+    fontWeight: '600',
   },
-  fecha: {
+  progressContainer: {
+    gap: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressText: {
     fontSize: 12,
-    color: '#A3A3A3',
+    color: '#6B6B6B',
+    textAlign: 'center',
   },
   emptyText: {
     fontSize: 15,

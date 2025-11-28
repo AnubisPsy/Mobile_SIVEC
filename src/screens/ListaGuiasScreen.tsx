@@ -1,4 +1,4 @@
-// src/screens/ListaGuiasScreen.tsx - SOLO ESTILOS
+// src/screens/ListaGuiasScreen.tsx
 import React from 'react';
 import {
   View,
@@ -19,6 +19,7 @@ const ListaGuiasScreen: React.FC<Props> = ({ route, navigation }) => {
   const verDetalleGuia = (guia: any) => {
     navigation.navigate('DetalleGuia', {
       guia,
+      estado_viaje: factura.estado_viaje, // ✅ Pasar estado del viaje
       onActualizar: () => {
         navigation.goBack();
       },

@@ -1,4 +1,4 @@
-// src/screens/SeleccionarGuiaScreen.tsx - SOLO ESTILOS
+// src/screens/SeleccionarGuiaScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
 const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   const { factura } = route.params;
   const [seleccionando, setSeleccionando] = useState(false);
+  const [loading] = useState(false); // Por si en el futuro necesitas cargar datos
 
   const seleccionarGuia = async (guia: any) => {
     console.log('🎯 seleccionarGuia llamado con:', guia);
@@ -54,11 +56,22 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
                     onPress: () => {
                       navigation.navigate('DetalleGuia', {
                         guia: response.data.data,
+                        estado_viaje: factura.estado_viaje, // ✅ Pasar estado del viaje
                         onActualizar: () => {
                           navigation.goBack();
                         },
                       });
                     },
+                  },
+                  {
+                    text: 'Volver al inicio',
+                    onPress: () => {
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'MainTabs' }],
+                      });
+                    },
+                    style: 'cancel',
                   },
                 ]);
               }
@@ -102,7 +115,10 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
       </View>
 
       <TouchableOpacity
-        style={styles.selectButton}
+        style={[
+          styles.selectButton,
+          seleccionando && styles.selectButtonDisabled,
+        ]}
         onPress={() => {
           console.log('🔘 Botón presionado');
           seleccionarGuia(item);
@@ -110,12 +126,24 @@ const SeleccionarGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
         disabled={seleccionando}
         activeOpacity={0.7}
       >
-        <Text style={styles.selectButtonText}>
-          {seleccionando ? 'Procesando...' : 'Seleccionar'}
-        </Text>
+        {seleccionando ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Text style={styles.selectButtonText}>Seleccionar</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
+
+  // Pantalla de carga (por si en el futuro cargas datos aquí)
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#2563EB" />
+        <Text style={styles.loadingText}>Buscando guías...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -147,6 +175,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FAFAFA',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: '#6B6B6B',
   },
   header: {
     paddingHorizontal: 24,
@@ -228,6 +267,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
+  },
+  selectButtonDisabled: {
+    opacity: 0.6,
   },
   selectButtonText: {
     color: '#FFFFFF',

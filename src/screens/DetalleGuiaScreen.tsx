@@ -32,7 +32,9 @@ type RootStackParamList = {
   DetalleGuia: {
     guia: Guia;
     onActualizar: () => void;
+    estado_viaje?: number; // ✅ NUEVO: Estado del viaje
   };
+  MainTabs: undefined;
 };
 
 type DetalleGuiaScreenRouteProp = RouteProp<RootStackParamList, 'DetalleGuia'>;
@@ -47,12 +49,22 @@ interface Props {
 }
 
 const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { guia, onActualizar } = route.params;
+  const { guia, onActualizar, estado_viaje } = route.params;
   const [actualizando, setActualizando] = useState(false);
 
   const actualizarEstado = async (
     nuevoEstado: 'entregada' | 'no_entregada',
   ) => {
+    // ✅ VALIDAR: Solo permitir si el viaje está en proceso (estado 8)
+    if (estado_viaje !== 8) {
+      Alert.alert(
+        '⚠️ Viaje no iniciado',
+        'No puedes marcar entregas hasta que todas las guías estén vinculadas y el viaje esté en proceso.',
+        [{ text: 'Entendido' }],
+      );
+      return;
+    }
+
     const estadoId = nuevoEstado === 'entregada' ? 4 : 5;
     const mensaje =
       nuevoEstado === 'entregada'
@@ -125,7 +137,12 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
   };
 
   const estadoInfo = getEstadoColor(guia.estados.codigo);
-  const puedeActualizar = guia.estados.codigo === 'guia_asignada';
+
+  // ✅ Solo puede actualizar si:
+  // 1. La guía está pendiente (estado_id === 3)
+  // 2. El viaje está en proceso (estado_viaje === 8)
+  const puedeActualizar =
+    guia.estados.codigo === 'guia_asignada' && estado_viaje === 8;
 
   return (
     <View style={styles.container}>
@@ -185,20 +202,24 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Mensaje si ya está procesada */}
+        {/* Mensaje si ya está procesada o viaje no iniciado */}
         {!puedeActualizar && (
           <View style={styles.messageContainer}>
             <Text style={styles.messageText}>
               {guia.estados.codigo === 'guia_entregada'
                 ? 'Esta guía ya fue marcada como entregada'
-                : 'Esta guía ya fue marcada como no entregada'}
+                : guia.estados.codigo === 'guia_no_entregada'
+                ? 'Esta guía ya fue marcada como no entregada'
+                : estado_viaje !== 8
+                ? 'Debes vincular todas las guías del viaje antes de poder marcar entregas'
+                : 'No puedes actualizar esta guía'}
             </Text>
           </View>
         )}
       </ScrollView>
 
       {/* Botones de acción */}
-      {puedeActualizar && (
+      {puedeActualizar ? (
         <View style={styles.footer}>
           <TouchableOpacity
             style={[styles.button, styles.buttonSecondary]}
@@ -226,6 +247,22 @@ const DetalleGuiaScreen: React.FC<Props> = ({ route, navigation }) => {
             ) : (
               <Text style={styles.buttonTextPrimary}>Entregada</Text>
             )}
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonPrimary]}
+            onPress={() => {
+              // Navegar al tab de Facturas y luego hacer pop del stack
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'MainTabs' }],
+              });
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonTextPrimary}>Volver al inicio</Text>
           </TouchableOpacity>
         </View>
       )}

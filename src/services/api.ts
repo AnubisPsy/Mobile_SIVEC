@@ -225,6 +225,9 @@ export const viajesApi = {
     piloto?: string;
     numero_vehiculo?: string;
   }) => api.get<ApiResponse<any[]>>('/api/viajes/historial', { params }),
+
+  obtenerViajesPiloto: (piloto_id: number) =>
+    api.get(`/api/viajes/piloto/${piloto_id}`),
 };
 
 // ==========================================

@@ -13,6 +13,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { facturasApi } from '../services/api';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface Factura {
   factura_id: number;
@@ -227,6 +228,25 @@ const FacturasScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.headerSubtitle}>{user?.nombre_usuario}</Text>
       </View>
 
+      {/* ✨ NUEVO: Botón de buscar facturas en el centro */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.buscarFacturasButton}
+          onPress={onRefresh}
+          disabled={refreshing}
+          activeOpacity={0.7}
+        >
+          {refreshing ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Icon name="refresh" size={20} color="#FFFFFF" />
+          )}
+          <Text style={styles.buscarFacturasButtonText}>
+            {refreshing ? 'Buscando...' : 'Buscar facturas asignadas'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {facturas.length === 0 ? (
         <View style={styles.centerContainer}>
           <Text style={styles.emptyText}>No tienes facturas asignadas</Text>
@@ -281,6 +301,28 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 13,
     color: '#6B6B6B',
+  },
+  buttonContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  buscarFacturasButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  buscarFacturasButtonText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#FFFFFF',
   },
   lista: {
     padding: 16,
