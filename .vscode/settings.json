@@ -1,0 +1,23 @@
+{
+  "files.exclude": {
+    "**/.gradle": true,
+    "**/node_modules/@react-native/gradle-plugin": true,
+    "**/android/.gradle": true,
+    "**/android/app/build": true
+  },
+  "search.exclude": {
+    "**/.gradle": true,
+    "**/node_modules/@react-native/gradle-plugin": true,
+    "**/android/.gradle": true,
+    "**/android/app/build": true
+  },
+  "files.watcherExclude": {
+    "**/.gradle": true,
+    "**/node_modules/@react-native/gradle-plugin": true,
+    "**/android/.gradle": true,
+    "**/android/app/build": true
+  },
+  "java.project.sourcePaths": [],
+  "java.configuration.updateBuildConfiguration": "disabled",
+  "java.import.gradle.enabled": false
+}
